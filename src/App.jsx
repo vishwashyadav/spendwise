@@ -56,7 +56,7 @@ export default function App() {
   const [month,setMonth] = useState('all');
   const [showForm,setShowForm] = useState(false);
   const [form,setForm] = useState({date:localDate(),description:'',payee:'',category:'Other',amount:'',type:'expense'});
-  const [mapping,setMapping] = useState({payee:'',category:'Other'});
+  const [mapping,setMapping] = useState({payee:'',category:'Other'});\n  const [csvImport,setCsvImport] = useState(null);
 
   async function refresh() {
     setSyncing(true); setError('');
@@ -96,11 +96,42 @@ export default function App() {
   }
   async function importCsv(file) {
     if(!file)return;
-    Papa.parse(file,{header:true,skipEmptyLines:true,complete:({data:rows})=>{
-      const imported=rows.map(r=>rowToTransaction(r,data.rules)).filter(Boolean);
-      if(!imported.length){setError('No transactions found. Check that this is a PhonePe transaction CSV.');return;}
-      save({...data,transactions:[...imported,...data.transactions]});
-    },error:()=>setError('Unable to read this CSV file.')});
+    Papa.parse(file,{header:true,skipEmptyLines:true,transformHeader:h=>h.trim(),complete:({data:rows,meta})=>{
+      const headers=meta.fields||Object.keys(rows[0]||{});
+      if(!headers.length||!rows.length){setError('CSV is empty or has no header row.');return;}
+      const aliases={date:['date','transactiondate','transactiondatetime','createdat','timestamp'],amount:['amount','transactionamount','totalamount'],debit:['debit','withdrawal','debitamount'],credit:['credit','deposit','creditamount'],type:['type','transactiontype','drcr'],description:['description','remark','narration','details','transactiondetails'],payee:['payee','recipient','paidto','merchant','beneficiary','counterparty','name'],reference:['utr','reference','transactionid'],status:['status','transactionstatus']};
+      const norm=h=>h.toLowerCase().replace(/[^a-z0-9]/g,'');
+      const map={};Object.entries(aliases).forEach(([k,a])=>map[k]=headers.find(h=>a.includes(norm(h)))||'');
+      const payeeField=map.payee||map.description;
+      const payees=[...new Set(rows.map(r=>String(r[payeeField]||r[map.description]||'Unknown payee').trim()).filter(Boolean))];
+      const cats={};payees.forEach(p=>{const k=Object.keys(data.rules||{}).find(x=>p.toLowerCase().includes(x.toLowerCase()));cats[p]=k?data.rules[k]:guessCategory(p,data.rules);});
+      setCsvImport({fileName:file.name,headers,rows,mapping:map,payees,payeeCategories:cats});
+    },error:()=>setError('Unable to read CSV file.')});
+  }
+  function updateCsvMapping(field,value){setCsvImport(c=>({...c,mapping:{...c.mapping,[field]:value}}));}
+  function updatePayeeCategory(payee,category){setCsvImport(c=>({...c,payeeCategories:{...c.payeeCategories,[payee]:category}}));}
+  function confirmCsvImport(){
+    if(!csvImport)return;
+    const {rows,mapping:m,fileName,payeeCategories}=csvImport;
+    if(!m.date||(!m.amount&&!m.debit&&!m.credit)){setError('Map a date and an amount or debit/credit column.');return;}
+    const imported=[];
+    for(const row of rows){
+      const val=k=>m[k]?String(row[m[k]]??'').trim():'';
+      const number=v=>Math.abs(Number(String(v||'').replace(/[^0-9.-]/g,''))||0);
+      const debit=number(val('debit')),credit=number(val('credit')),amount=number(val('amount'))||debit||credit;
+      if(!amount)continue;
+      const type=(credit>0||/credit|received|income|deposit|refund/i.test(val('type')))?'income':'expense';
+      const dateRaw=val('date'),dm=dateRaw.match(/^(\\d{1,2})[/-](\\d{1,2})[/-](\\d{2,4})/);
+      const date=dm?`${dm[3].length===2?'20'+dm[3]:dm[3]}-${dm[2].padStart(2,'0')}-${dm[1].padStart(2,'0')}`:normalizeDate(dateRaw);
+      const description=val('description')||val('payee')||'Imported transaction',payee=val('payee')||description;
+      if(/fail|declin|revers|cancel/i.test(val('status')))continue;
+      imported.push({id:crypto.randomUUID(),date,transactionDate:date,description,payee,amount,currency:'INR',type,category:payeeCategories[payee]||'Other',reference:val('reference')||undefined,source:fileName});
+    }
+    const seen=new Set(data.transactions.map(t=>[t.date,t.amount,t.type,(t.payee||'').toLowerCase(),t.reference||''].join('|')));
+    const unique=imported.filter(t=>{const k=[t.date,t.amount,t.type,(t.payee||'').toLowerCase(),t.reference||''].join('|');if(seen.has(k))return false;seen.add(k);return true;});
+    if(!unique.length){setError(imported.length?'These transactions are already imported.':'No valid rows found; verify your mappings.');return;}
+    const rules={...data.rules};Object.entries(payeeCategories).forEach(([p,c])=>{if(c&&c!=='Other')rules[p.toLowerCase()]=c;});
+    save({...data,rules,transactions:[...unique,...data.transactions]});setCsvImport(null);setError('');
   }
   function addMapping(e) {
     e.preventDefault();
@@ -145,6 +176,12 @@ export default function App() {
         </article>
       </section>
       <section className="panel transactions-panel"><div className="panel-heading transaction-heading"><div><h2>Transactions</h2><p>Review and manage your activity</p></div><div className="action-row"><label className="secondary-button upload-button"><Upload size={15}/> Import PhonePe CSV<input type="file" accept=".csv,text/csv" onChange={e=>importCsv(e.target.files?.[0])}/></label><button className="secondary-button" onClick={exportCsv}><Download size={15}/> Export</button><button className="primary-button" onClick={()=>setShowForm(!showForm)}><Plus size={16}/> Add expense</button></div></div>
+        {csvImport&&<div className="csv-mapper"><div className="csv-mapper-head"><div><h3>Map CSV columns and payee categories</h3><p>{csvImport.fileName} · {csvImport.rows.length} rows · {csvImport.payees.length} payees</p></div><button type="button" className="icon-button" onClick={()=>setCsvImport(null)}>✕</button></div>
+          <p className="mapper-help">Match the CSV headers to Spendwise fields, then assign a category to each payee. Your payee rules are saved privately and reused on future imports.</p>
+          <div className="mapper-grid">{[['date','Transaction date'],['amount','Amount'],['debit','Debit amount'],['credit','Credit amount'],['type','Transaction type'],['description','Description'],['payee','Paid to / Payee'],['reference','Reference / UTR'],['status','Status']].map(([k,label])=><label className="mapper-field" key={k}><span>{label}{k==='date'?' *':''}</span><select value={csvImport.mapping[k]||''} onChange={e=>updateCsvMapping(k,e.target.value)}><option value="">— Not mapped —</option>{csvImport.headers.map(h=><option key={h}>{h}</option>)}</select></label>)}</div>
+          <div className="payee-category-map"><h4>Payee → Category</h4><p>Example: map “Paid to Rahul” to Family. The mapping will be remembered next time.</p><div className="payee-category-list">{csvImport.payees.map(p=><label className="payee-category-row" key={p}><span title={p}>{p}</span><select value={csvImport.payeeCategories[p]||'Other'} onChange={e=>updatePayeeCategory(p,e.target.value)}>{CATEGORIES.map(c=><option key={c}>{c}</option>)}</select></label>)}</div></div>
+          <div className="mapper-preview"><b>Preview (first 5 rows)</b><div className="table-scroll"><table><thead><tr><th>Date</th><th>Payee</th><th>Description</th><th>Category</th><th className="right">Amount</th></tr></thead><tbody>{csvImport.rows.slice(0,5).map((r,i)=>{const m=csvImport.mapping,p=String((m.payee?r[m.payee]:'')||(m.description?r[m.description]:'')||'Unknown payee').trim();return <tr key={i}><td>{m.date?r[m.date]:''}</td><td>{p}</td><td>{m.description?r[m.description]:''}</td><td>{csvImport.payeeCategories[p]||'Other'}</td><td className="right">{m.amount?r[m.amount]:((m.debit?r[m.debit]:'')||(m.credit?r[m.credit]:''))}</td></tr>})}</tbody></table></div></div>
+          <div className="mapper-actions"><button type="button" className="secondary-button" onClick={()=>setCsvImport(null)}>Cancel</button><button type="button" className="primary-button" onClick={confirmCsvImport}>Confirm and import</button></div></div>}
         {showForm&&<form className="entry-form" onSubmit={addTransaction}><input type="date" value={form.date} onChange={e=>setForm({...form,date:e.target.value})}/><input placeholder="Description" required value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/><input placeholder="Payee / merchant" value={form.payee} onChange={e=>setForm({...form,payee:e.target.value})}/><select value={form.category} onChange={e=>setForm({...form,category:e.target.value})}>{CATEGORIES.map(c=><option key={c}>{c}</option>)}</select><input type="number" min="0.01" step="0.01" placeholder="Amount ₹" required value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})}/><select value={form.type} onChange={e=>setForm({...form,type:e.target.value})}><option value="expense">Expense</option><option value="income">Income</option></select><button className="primary-button" type="submit">Save transaction</button></form>}
         <div className="table-tools"><div className="search-box"><Search size={16}/><input placeholder="Search transactions..." value={query} onChange={e=>setQuery(e.target.value)}/></div><span>{filtered.length} records</span></div>
         <div className="table-scroll"><table><thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Payee</th><th className="right">Amount</th></tr></thead><tbody>{filtered.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,100).map(t=><tr key={t.id}><td>{new Date(t.date+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</td><td className="desc-cell">{t.description}</td><td><span className="category-pill">{t.category}</span></td><td>{t.payee}</td><td className={'right amount '+(t.type==='income'?'income':'')}>{t.type==='income'?'+':'−'}{money(t.amount)}</td></tr>)}</tbody></table>{!filtered.length&&<div className="empty-table">{loading?'Loading your data…':'No transactions yet. Import a PhonePe CSV or add your first expense.'}</div>}</div>
