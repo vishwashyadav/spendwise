@@ -159,9 +159,30 @@ export default function App() {
       if(/fail|declin|revers|cancel/i.test(val('status')))continue;
       imported.push({id:crypto.randomUUID(),date,transactionDate:date,description,payee,amount,currency:'INR',type,category:payeeCategories[payee]||'Other',reference:val('reference')||undefined,source:fileName});
     }
-    const seen=new Set(data.transactions.map(t=>[t.date,t.amount,t.type,(t.payee||'').toLowerCase(),t.reference||''].join('|')));
-    const unique=imported.filter(t=>{const k=[t.date,t.amount,t.type,(t.payee||'').toLowerCase(),t.reference||''].join('|');if(seen.has(k))return false;seen.add(k);return true;});
-    if(!unique.length){setError(imported.length?'These transactions are already imported.':'No valid rows found; verify your mappings.');return;}
+    const normalizeText=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]/g,'').trim();
+    const transactionKeys=t=>{
+      const reference=normalizeText(t.reference);
+      if(reference)return [`ref:${reference}`];
+      const date=t.date||t.transactionDate||'';
+      const amount=Number(t.amount||0).toFixed(2);
+      const type=t.type||'expense';
+      const payee=normalizeText(t.payee);
+      const description=normalizeText(t.description);
+      return [`fallback:${date}|${amount}|${type}|${payee}|${description}`];
+    };
+    const seen=new Set(data.transactions.flatMap(transactionKeys));
+    const unique=[];
+    let duplicateCount=0;
+    imported.forEach(t=>{
+      const keys=transactionKeys(t);
+      if(keys.some(k=>seen.has(k))){duplicateCount++;return;}
+      keys.forEach(k=>seen.add(k));
+      unique.push(t);
+    });
+    if(!unique.length){
+      setError(imported.length?`No transactions imported: all ${duplicateCount} valid rows are duplicates already in Spendwise.`:'No valid rows found; verify your mappings.');
+      return;
+    }
     const categoryMappings=[...(data.categoryMappings||[])];
     const byPayee={};
     unique.forEach(t=>{const p=(t.payee||t.description||'').trim();if(!byPayee[p])byPayee[p]=[];byPayee[p].push(t.date);});
@@ -172,7 +193,7 @@ export default function App() {
     });
     const combined=[...unique,...data.transactions];
     const transactions=recategorizeTransactions(combined,categoryMappings,data.rules);
-    save({...data,categoryMappings,transactions});setCsvImport(null);setError('');
+    save({...data,categoryMappings,transactions});setCsvImport(null);setError(duplicateCount?`Imported ${unique.length} new transactions; skipped ${duplicateCount} duplicates.`:`Imported ${unique.length} transactions. No duplicates found.`);
   }
   function addMapping(e) {
     e.preventDefault();
