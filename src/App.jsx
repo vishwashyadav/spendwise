@@ -145,7 +145,7 @@ export default function App() {
       const map={};Object.entries(aliases).forEach(([k,a])=>map[k]=headers.find(h=>a.includes(norm(h)))||'');
       const payees=[...new Set(rows.map(r=>{const explicit=map.payee&&map.payee!==map.description?String(r[map.payee]||'').trim():'';return explicit||extractCounterparty(r[map.description])||'Unspecified payee';}).filter(Boolean))];
       const cats={};payees.forEach(p=>{const k=Object.keys(data.rules||{}).find(x=>p.toLowerCase().includes(x.toLowerCase()));cats[p]=k?data.rules[k]:guessCategory(p,data.rules);});
-      setCsvImport({fileName:file.name,headers,rows,mapping:map,payees,payeeCategories:cats});
+      setCsvImport({fileName:file.name,headers,rows,mapping:map,payees,payeeCategories:cats,payeeSubcategories:{}});
     },error:()=>setError('Unable to read CSV file.')});
   }
   function updateCsvMapping(field,value){
@@ -159,10 +159,11 @@ export default function App() {
       return {...c,mapping};
     });
   }
-  function updatePayeeCategory(payee,category){setCsvImport(c=>({...c,payeeCategories:{...c.payeeCategories,[payee]:category}}));}
+  function updatePayeeCategory(payee,category){setCsvImport(c=>({...c,payeeCategories:{...c.payeeCategories,[payee]:category},payeeSubcategories:{...c.payeeSubcategories,[payee]:''}}));}
+  function updatePayeeSubcategory(payee,subcategory){setCsvImport(c=>({...c,payeeSubcategories:{...c.payeeSubcategories,[payee]:subcategory}}));}
   function confirmCsvImport(){
     if(!csvImport)return;
-    const {rows,mapping:m,fileName,payeeCategories}=csvImport;
+    const {rows,mapping:m,fileName,payeeCategories,payeeSubcategories={}}=csvImport;
     if(!m.date||!m.amount||!m.type){setError('Please map Transaction date, Amount, and Transaction type.');return;}
     const imported=[];
     for(const row of rows){
@@ -178,7 +179,7 @@ export default function App() {
       const explicitPayee=m.payee&&m.payee!==m.description?val('payee'):'';
       const payee=explicitPayee||extractCounterparty(description)||'Unspecified payee';
       if(/fail|declin|revers|cancel/i.test(val('status')))continue;
-      imported.push({id:crypto.randomUUID(),date,transactionDate:date,description,payee,amount,currency:'INR',type,category:payeeCategories[payee]||'Other',reference:val('reference')||undefined,source:fileName});
+      imported.push({id:crypto.randomUUID(),date,transactionDate:date,description,payee,amount,currency:'INR',type,category:payeeCategories[payee]||'Other',subcategory:payeeSubcategories[payee]||'',reference:val('reference')||undefined,source:fileName});
     }
     const normalizeText=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]/g,'').trim();
     const transactionKeys=t=>{
@@ -210,7 +211,7 @@ export default function App() {
     Object.entries(byPayee).forEach(([payee,dates])=>{
       const category=payeeCategories[payee]||'Other';
       if(category==='Other')return;
-      categoryMappings.push({id:crypto.randomUUID(),matchText:payee,category,effectiveFrom:dates.slice().sort()[0],effectiveTo:'',createdAt:new Date().toISOString()});
+      categoryMappings.push({id:crypto.randomUUID(),matchText:payee,category,subcategory:payeeSubcategories[payee]||'',effectiveFrom:dates.slice().sort()[0],effectiveTo:'',createdAt:new Date().toISOString()});
     });
     const combined=[...unique,...data.transactions];
     const transactions=recategorizeTransactions(combined,categoryMappings,data.rules);
@@ -270,11 +271,11 @@ export default function App() {
     if(used&&!replacementCategory){setError('Choose a replacement category before deleting this category.');return;}
     if(used&&replacementCategory===name){setError('Replacement category must be different.');return;}
     const target=used?replacementCategory:'';
-    const transactions=data.transactions.map(t=>t.category===name?{...t,category:target}:t);
+    const transactions=data.transactions.map(t=>t.category===name?{...t,category:target,subcategory:''}:t);
     const categoryMappings=(data.categoryMappings||[]).map(m=>m.category===name?{...m,category:target}:m);
     const rules=Object.fromEntries(Object.entries(data.rules||{}).map(([k,v])=>[k,v===name?target:v]));
     const subcategories={...(data.subcategories||{})};delete subcategories[name];
-    await save({...data,categories:categoryOptions.filter(c=>c!==name),subcategories,transactions:transactions.map(t=>t.category===target?{...t,subcategory:''}:t),categoryMappings,rules});
+    await save({...data,categories:categoryOptions.filter(c=>c!==name),subcategories,transactions,categoryMappings,rules});
     setCategoryToDelete('');setReplacementCategory('');await refresh();
   }
   function removeCategoryMapping(id){
@@ -349,7 +350,7 @@ export default function App() {
         {csvImport&&<div className="csv-mapper"><div className="csv-mapper-head"><div><h3>Map CSV columns and payee categories</h3><p>{csvImport.fileName} · {csvImport.rows.length} rows · {csvImport.payees.length} payees</p></div><button type="button" className="icon-button" onClick={()=>setCsvImport(null)}>✕</button></div>
           <p className="mapper-help">Match the CSV headers to Spendwise fields, then assign a category to each payee. Your payee rules are saved privately and reused on future imports.</p>
           <div className="mapper-grid">{[['date','Transaction date'],['amount','Amount'],['type','Transaction type'],['description','Description'],['payee','Paid to / Payee'],['reference','Reference / UTR'],['status','Status']].map(([k,label])=><label className="mapper-field" key={k}><span>{label}{['date','amount','type'].includes(k)?' *':''}</span><select value={csvImport.mapping[k]||''} onChange={e=>updateCsvMapping(k,e.target.value)}><option value="">— Not mapped —</option>{csvImport.headers.map(h=><option key={h}>{h}</option>)}</select></label>)}</div>
-          <div className="payee-category-map"><h4>Payee → Category</h4><p>Example: map “Paid to Rahul” to Family. The mapping will be remembered next time.</p><div className="payee-category-list">{csvImport.payees.map(p=><label className="payee-category-row" key={p}><span title={p}>{p}</span><select value={csvImport.payeeCategories[p]||'Other'} onChange={e=>updatePayeeCategory(p,e.target.value)}>{categoryOptions.map(c=><option key={c}>{c}</option>)}</select></label>)}</div></div>
+          <div className="payee-category-map"><h4>Payee → Category</h4><p>Example: map “Paid to Rahul” to Family. The mapping will be remembered next time.</p><div className="payee-category-list">{csvImport.payees.map(p=><label className="payee-category-row" key={p}><span title={p}>{p}</span><div className="other-category-selects"><select value={csvImport.payeeCategories[p]||'Other'} onChange={e=>updatePayeeCategory(p,e.target.value)}>{categoryOptions.map(c=><option key={c}>{c}</option>)}</select>{csvImport.payeeCategories[p]&&csvImport.payeeCategories[p]!=='Other'&&<select value={csvImport.payeeSubcategories?.[p]||''} onChange={e=>updatePayeeSubcategory(p,e.target.value)}><option value="">No subcategory</option>{subcategoryOptions(csvImport.payeeCategories[p]).map(sub=><option key={sub}>{sub}</option>)}</select>}</div></label>)}</div></div>
           <div className="mapper-preview"><b>Preview (first 5 rows)</b><div className="table-scroll"><table><thead><tr><th>Date</th><th>Payee</th><th>Description</th><th>Transaction type</th><th>Category</th><th className="right">Amount</th></tr></thead><tbody>{csvImport.rows.slice(0,5).map((r,i)=>{const m=csvImport.mapping,p=String((m.payee?r[m.payee]:'')||(m.description?r[m.description]:'')||'Unknown payee').trim();return <tr key={i}><td>{m.date?r[m.date]:''}</td><td>{p}</td><td>{m.description?r[m.description]:''}</td><td>{m.type?r[m.type]:''}</td><td>{csvImport.payeeCategories[p]||'Other'}</td><td className="right">{m.amount?r[m.amount]:''}</td></tr>})}</tbody></table></div></div>
           <div className="mapper-actions"><button type="button" className="secondary-button" onClick={()=>setCsvImport(null)}>Cancel</button><button type="button" className="primary-button" onClick={confirmCsvImport}>Confirm and import</button></div></div>}
         {activeScreen==='dashboard'&&showForm&&<form className="entry-form" onSubmit={addTransaction}><input type="date" value={form.date} onChange={e=>setForm({...form,date:e.target.value})}/><input placeholder="Description" required value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/><input placeholder="Payee / merchant" value={form.payee} onChange={e=>setForm({...form,payee:e.target.value})}/><select value={form.category} onChange={e=>setForm({...form,category:e.target.value,subcategory:''})}>{categoryOptions.map(c=><option key={c}>{c}</option>)}</select><select value={form.subcategory} onChange={e=>setForm({...form,subcategory:e.target.value})}><option value=''>No subcategory</option>{subcategoryOptions(form.category).map(c=><option key={c}>{c}</option>)}</select><input type="number" min="0.01" step="0.01" placeholder="Amount ₹" required value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})}/><select value={form.type} onChange={e=>setForm({...form,type:e.target.value})}><option value="expense">Expense</option><option value="income">Income</option></select><button className="primary-button" type="submit">Save transaction</button></form>}
