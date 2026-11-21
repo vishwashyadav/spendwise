@@ -9,6 +9,18 @@ const money = n => new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR
 const monthKey = d => { const x = new Date(d); return Number.isNaN(+x) ? 'Unknown' : x.toLocaleString('en-IN',{month:'short',year:'2-digit'}); };
 const localDate = () => { const d = new Date(); return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10); };
 const initial = { transactions: [], rules: {}, schemaVersion: 1 };
+function categoryForTransaction(transaction, mappings, legacyRules={}) {
+  const haystack=`${transaction.payee||''} ${transaction.description||''}`.toLowerCase();
+  const date=transaction.date||transaction.transactionDate||'';
+  const matches=(mappings||[]).filter(m=>m.active!==false&&m.matchText&&haystack.includes(m.matchText.toLowerCase())&&(!m.effectiveFrom||date>=m.effectiveFrom)&&(!m.effectiveTo||date<=m.effectiveTo)).sort((a,b)=>(b.effectiveFrom||'').localeCompare(a.effectiveFrom||''));
+  if(matches.length)return matches[0].category;
+  const legacyKey=Object.keys(legacyRules||{}).find(k=>k&&haystack.includes(k.toLowerCase()));
+  return legacyKey?legacyRules[legacyKey]:transaction.category||'Other';
+}
+function recategorizeTransactions(transactions,mappings,legacyRules={}) {
+  return transactions.map(t=>({...t,category:categoryForTransaction(t,mappings,legacyRules)}));
+}
+
 
 function guessCategory(text, rules) {
   const s = String(text||'').toLowerCase();
@@ -69,7 +81,7 @@ export default function App() {
         throw new Error([problem.error || 'Could not load your private data.', detail].filter(Boolean).join(' — '));
       }
       const json = await res.json();
-      setData({...initial,...json.data,transactions:Array.isArray(json.data?.transactions)?json.data.transactions:[],rules:json.data?.rules||{}});
+      setData({...initial,...json.data,transactions:Array.isArray(json.data?.transactions)?json.data.transactions:[],rules:json.data?.rules||{},categoryMappings:Array.isArray(json.data?.categoryMappings)?json.data.categoryMappings:[]});
       setUser(json.user || user);
       localStorage.setItem('spendwise-cache',JSON.stringify(json.data||initial));
     } catch(e) { setError(e.message); }
@@ -141,15 +153,33 @@ export default function App() {
     const seen=new Set(data.transactions.map(t=>[t.date,t.amount,t.type,(t.payee||'').toLowerCase(),t.reference||''].join('|')));
     const unique=imported.filter(t=>{const k=[t.date,t.amount,t.type,(t.payee||'').toLowerCase(),t.reference||''].join('|');if(seen.has(k))return false;seen.add(k);return true;});
     if(!unique.length){setError(imported.length?'These transactions are already imported.':'No valid rows found; verify your mappings.');return;}
-    const rules={...data.rules};Object.entries(payeeCategories).forEach(([p,c])=>{if(c&&c!=='Other')rules[p.toLowerCase()]=c;});
-    save({...data,rules,transactions:[...unique,...data.transactions]});setCsvImport(null);setError('');
+    const categoryMappings=[...(data.categoryMappings||[])];
+    const byPayee={};
+    unique.forEach(t=>{const p=(t.payee||t.description||'').trim();if(!byPayee[p])byPayee[p]=[];byPayee[p].push(t.date);});
+    Object.entries(byPayee).forEach(([payee,dates])=>{
+      const category=payeeCategories[payee]||'Other';
+      if(category==='Other')return;
+      categoryMappings.push({id:crypto.randomUUID(),matchText:payee,category,effectiveFrom:dates.slice().sort()[0],effectiveTo:dates.slice().sort().at(-1),createdAt:new Date().toISOString()});
+    });
+    const combined=[...unique,...data.transactions];
+    const transactions=recategorizeTransactions(combined,categoryMappings,data.rules);
+    save({...data,categoryMappings,transactions});setCsvImport(null);setError('');
   }
   function addMapping(e) {
     e.preventDefault();
-    const key=mapping.payee.trim().toLowerCase();
-    if(!key)return;
-    save({...data,rules:{...data.rules,[key]:mapping.category}});
-    setMapping({payee:'',category:'Other'});
+    const matchText=mapping.payee.trim();
+    if(!matchText)return;
+    const rule={id:crypto.randomUUID(),matchText,category:mapping.category,effectiveFrom:mapping.effectiveFrom||'',effectiveTo:mapping.effectiveTo||'',createdAt:new Date().toISOString()};
+    if(rule.effectiveFrom&&rule.effectiveTo&&rule.effectiveFrom>rule.effectiveTo){setError('Start date must be on or before end date.');return;}
+    const categoryMappings=[...(data.categoryMappings||[]),rule];
+    const transactions=recategorizeTransactions(data.transactions,categoryMappings,data.rules);
+    save({...data,categoryMappings,transactions});
+    setMapping({payee:'',category:'Other',effectiveFrom:'',effectiveTo:''});
+  }
+  function removeCategoryMapping(id){
+    const categoryMappings=(data.categoryMappings||[]).filter(m=>m.id!==id);
+    const transactions=recategorizeTransactions(data.transactions,categoryMappings,data.rules);
+    save({...data,categoryMappings,transactions});
   }
   const months=useMemo(()=>['all',...Array.from(new Set(data.transactions.map(t=>monthKey(t.date)))).filter(x=>x!=='Unknown')],[data.transactions]);
   const filtered=useMemo(()=>data.transactions.filter(t=>(month==='all'||monthKey(t.date)===month)&&(`${t.description} ${t.payee} ${t.category}`.toLowerCase().includes(query.toLowerCase()))),[data.transactions,month,query]);
@@ -197,7 +227,7 @@ export default function App() {
         <div className="table-tools"><div className="search-box"><Search size={16}/><input placeholder="Search transactions..." value={query} onChange={e=>setQuery(e.target.value)}/></div><span>{filtered.length} records</span></div>
         <div className="table-scroll"><table><thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Payee</th><th className="right">Amount</th></tr></thead><tbody>{filtered.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,100).map(t=><tr key={t.id}><td>{new Date(t.date+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</td><td className="desc-cell">{t.description}</td><td><span className="category-pill">{t.category}</span></td><td>{t.payee}</td><td className={'right amount '+(t.type==='income'?'income':'')}>{t.type==='income'?'+':'−'}{money(t.amount)}</td></tr>)}</tbody></table>{!filtered.length&&<div className="empty-table">{loading?'Loading your data…':'No transactions yet. Import a PhonePe CSV or add your first expense.'}</div>}</div>
       </section>
-      <section className="panel mapping-panel"><div className="panel-heading"><div><h2>Payee category rules</h2><p>Remember a category for a merchant or payee on future imports.</p></div></div><form className="mapping-form" onSubmit={addMapping}><input placeholder="Payee contains (e.g. swiggy)" value={mapping.payee} onChange={e=>setMapping({...mapping,payee:e.target.value})}/><select value={mapping.category} onChange={e=>setMapping({...mapping,category:e.target.value})}>{CATEGORIES.map(c=><option key={c}>{c}</option>)}</select><button className="secondary-button"><Plus size={15}/> Save rule</button></form><div className="rules-list">{Object.entries(data.rules).map(([k,v])=><span key={k}>{k} <b>→ {v}</b></span>)}</div></section>
+      <section className="panel mapping-panel"><div className="panel-heading"><div><h2>Date-wise category mappings</h2><p>Change a payee's category for any date range. Saving a mapping recalculates all matching transactions, including previously imported ones.</p></div></div><form className="mapping-form date-mapping-form" onSubmit={addMapping}><input placeholder="Payee / description contains (e.g. Rahul)" value={mapping.payee} onChange={e=>setMapping({...mapping,payee:e.target.value})} required/><select value={mapping.category} onChange={e=>setMapping({...mapping,category:e.target.value})}>{CATEGORIES.map(c=><option key={c}>{c}</option>)}</select><label>From<input type="date" value={mapping.effectiveFrom} onChange={e=>setMapping({...mapping,effectiveFrom:e.target.value})}/></label><label>To<input type="date" value={mapping.effectiveTo} onChange={e=>setMapping({...mapping,effectiveTo:e.target.value})}/></label><button className="secondary-button"><Plus size={15}/> Save & recalculate</button></form><p className="mapping-hint">Leave either date empty for an open-ended range. If rules overlap, the rule with the latest start date takes precedence.</p><div className="rules-list date-rules">{(data.categoryMappings||[]).map(m=><span key={m.id}><b>{m.matchText}</b> → {m.category} <small>{m.effectiveFrom||'Beginning'} to {m.effectiveTo||'No end date'}</small><button type="button" onClick={()=>removeCategoryMapping(m.id)} title="Remove mapping">×</button></span>)}{!data.categoryMappings?.length&&Object.entries(data.rules||{}).map(([k,v])=><span key={k}>{k} → {v} <small>Legacy mapping · all dates</small></span>)}</div></section>
       <footer>Spendwise · Private data stored in your GitHub repository · <a href="https://github.com/vishwashyadav/spendwise-data" target="_blank" rel="noreferrer">Data repository</a></footer>
     </main>
   </div>;
