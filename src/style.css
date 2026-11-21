@@ -57,3 +57,19 @@
 .review-other-panel .panel-heading{align-items:center}
 .review-other-panel .panel-heading .primary-button{white-space:nowrap;min-height:40px}
 @media(max-width:640px){.description-mapping-row{grid-template-columns:1fr;gap:10px;padding:12px}.review-other-panel .panel-heading{align-items:stretch}.review-other-panel .panel-heading .primary-button{width:100%}.description-mapping-list{max-height:none}}
+
+/* AG Grid transaction workspace */
+.ag-filter-toolbar{display:flex;align-items:end;gap:10px;flex-wrap:wrap;padding:14px;background:#faf9fd;border:1px solid #eeedf4;border-radius:14px;margin:12px 0}
+.ag-filter-toolbar .filter-search{flex:1 1 260px;min-width:220px}
+.ag-filter-toolbar>select,.ag-filter-toolbar>label{flex:1 1 140px;min-width:130px}
+.ag-filter-toolbar>label{display:flex;flex-direction:column;gap:5px;font-size:11px;color:#77758a;font-weight:600}
+.ag-filter-toolbar input,.ag-filter-toolbar select{height:38px;border:1px solid #e6e4ef;border-radius:9px;background:#fff;padding:0 10px;color:#45435a;font:500 12px 'DM Sans',sans-serif;min-width:0;width:100%}
+.ag-filter-toolbar .clear-filters{height:38px;white-space:nowrap}
+.spendwise-grid{width:100%;--ag-font-family:'DM Sans',sans-serif;--ag-font-size:12px;--ag-foreground-color:#45435a;--ag-background-color:#fff;--ag-header-background-color:#f8f7fc;--ag-header-foreground-color:#77758a;--ag-border-color:#eeedf4;--ag-row-border-color:#f0eff5;--ag-header-column-separator-display:block;--ag-header-column-separator-color:#eceaf2;--ag-border-radius:12px;--ag-wrapper-border-radius:12px;--ag-row-hover-color:#faf9ff;--ag-selected-row-background-color:#f1efff;--ag-input-focus-border-color:#7666e8;--ag-checkbox-checked-color:#7666e8}
+.spendwise-grid .ag-header-cell-text{font-weight:700}
+.spendwise-grid .ag-cell{display:flex;align-items:center}
+.spendwise-grid .grid-expense{color:#dc625c;font-weight:700}
+.spendwise-grid .grid-income{color:#169b79;font-weight:700}
+.spendwise-grid .category-grid-cell{font-weight:600}
+.spendwise-grid .ag-paging-panel{color:#77758a;font-size:11px}
+@media(max-width:700px){.ag-filter-toolbar{align-items:stretch;gap:8px;padding:10px}.ag-filter-toolbar .filter-search{flex:1 1 100%;min-width:100%}.ag-filter-toolbar>select,.ag-filter-toolbar>label{flex:1 1 calc(50% - 8px);min-width:0}.ag-filter-toolbar .clear-filters{width:100%}.spendwise-grid{font-size:11px}}
