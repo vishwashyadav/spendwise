@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Papa from 'papaparse';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 import { Wallet, Plus, Upload, Download, LogIn, LogOut, RefreshCw, Search, Trash2, TrendingUp, IndianRupee, CalendarDays, Tags, ShieldCheck } from 'lucide-react';
