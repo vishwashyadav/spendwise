@@ -71,6 +71,14 @@ export default function App() {
   const [error,setError] = useState('');
   const [query,setQuery] = useState('');
   const [month,setMonth] = useState('all');
+  const [categoryFilter,setCategoryFilter] = useState('all');
+  const [typeFilter,setTypeFilter] = useState('all');
+  const [dateFrom,setDateFrom] = useState('');
+  const [dateTo,setDateTo] = useState('');
+  const [minAmount,setMinAmount] = useState('');
+  const [maxAmount,setMaxAmount] = useState('');
+  const [sortBy,setSortBy] = useState('date');
+  const [sortDirection,setSortDirection] = useState('desc');
   const [showForm,setShowForm] = useState(false);
   const [form,setForm] = useState({date:localDate(),description:'',payee:'',category:'Other',amount:'',type:'expense'});
   const [mapping,setMapping] = useState({payee:'',category:'Other',effectiveFrom:'',effectiveTo:''});
@@ -221,7 +229,25 @@ export default function App() {
     save({...data,categoryMappings,transactions});
   }
   const months=useMemo(()=>['all',...Array.from(new Set(data.transactions.map(t=>monthKey(t.date)))).filter(x=>x!=='Unknown')],[data.transactions]);
-  const filtered=useMemo(()=>data.transactions.filter(t=>(month==='all'||monthKey(t.date)===month)&&(`${t.description} ${t.payee} ${t.category}`.toLowerCase().includes(query.toLowerCase()))),[data.transactions,month,query]);
+  const filtered=useMemo(()=>{
+    const rows=data.transactions.filter(t=>(month==='all'||monthKey(t.date)===month)
+      &&(categoryFilter==='all'||t.category===categoryFilter)
+      &&(typeFilter==='all'||(typeFilter==='expense'?t.type!=='income':t.type==='income'))
+      &&(!dateFrom||t.date>=dateFrom)&&(!dateTo||t.date<=dateTo)
+      &&(minAmount===''||Number(t.amount)>=Number(minAmount))
+      &&(maxAmount===''||Number(t.amount)<=Number(maxAmount))
+      &&(`${t.description||''} ${t.payee||''} ${t.category||''}`.toLowerCase().includes(query.toLowerCase())));
+    return rows.sort((a,b)=>{
+      let av=a[sortBy]??'',bv=b[sortBy]??'';
+      if(sortBy==='amount'){av=Number(av)||0;bv=Number(bv)||0;}
+      else {av=String(av).toLowerCase();bv=String(bv).toLowerCase();}
+      const result=av>bv?1:av<bv?-1:0;
+      return sortDirection==='asc'?result:-result;
+    });
+  },[data.transactions,month,categoryFilter,typeFilter,dateFrom,dateTo,minAmount,maxAmount,query,sortBy,sortDirection]);
+  function changeSort(field){if(sortBy===field)setSortDirection(d=>d==='asc'?'desc':'asc');else{setSortBy(field);setSortDirection(field==='date'||field==='amount'?'desc':'asc');}}
+  function sortLabel(field,label){return <button type="button" className="sort-header" onClick={()=>changeSort(field)}>{label}<span>{sortBy===field?(sortDirection==='asc'?'↑':'↓'):'↕'}</span></button>;}
+  function clearTransactionFilters(){setQuery('');setMonth('all');setCategoryFilter('all');setTypeFilter('all');setDateFrom('');setDateTo('');setMinAmount('');setMaxAmount('');}
   const expenses=filtered.filter(t=>t.type!=='income');
   const total=expenses.reduce((s,t)=>s+Number(t.amount),0);
   const income=filtered.filter(t=>t.type==='income').reduce((s,t)=>s+Number(t.amount),0);
@@ -264,8 +290,16 @@ export default function App() {
           <div className="mapper-preview"><b>Preview (first 5 rows)</b><div className="table-scroll"><table><thead><tr><th>Date</th><th>Payee</th><th>Description</th><th>Transaction type</th><th>Category</th><th className="right">Amount</th></tr></thead><tbody>{csvImport.rows.slice(0,5).map((r,i)=>{const m=csvImport.mapping,p=String((m.payee?r[m.payee]:'')||(m.description?r[m.description]:'')||'Unknown payee').trim();return <tr key={i}><td>{m.date?r[m.date]:''}</td><td>{p}</td><td>{m.description?r[m.description]:''}</td><td>{m.type?r[m.type]:''}</td><td>{csvImport.payeeCategories[p]||'Other'}</td><td className="right">{m.amount?r[m.amount]:''}</td></tr>})}</tbody></table></div></div>
           <div className="mapper-actions"><button type="button" className="secondary-button" onClick={()=>setCsvImport(null)}>Cancel</button><button type="button" className="primary-button" onClick={confirmCsvImport}>Confirm and import</button></div></div>}
         {activeScreen==='dashboard'&&showForm&&<form className="entry-form" onSubmit={addTransaction}><input type="date" value={form.date} onChange={e=>setForm({...form,date:e.target.value})}/><input placeholder="Description" required value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/><input placeholder="Payee / merchant" value={form.payee} onChange={e=>setForm({...form,payee:e.target.value})}/><select value={form.category} onChange={e=>setForm({...form,category:e.target.value})}>{CATEGORIES.map(c=><option key={c}>{c}</option>)}</select><input type="number" min="0.01" step="0.01" placeholder="Amount ₹" required value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})}/><select value={form.type} onChange={e=>setForm({...form,type:e.target.value})}><option value="expense">Expense</option><option value="income">Income</option></select><button className="primary-button" type="submit">Save transaction</button></form>}
-        {activeScreen==='dashboard'&&<><div className="table-tools"><div className="search-box"><Search size={16}/><input placeholder="Search transactions..." value={query} onChange={e=>setQuery(e.target.value)}/></div><span>{filtered.length} records</span></div>
-        <div className="table-scroll"><table><thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Payee</th><th className="right">Amount</th></tr></thead><tbody>{filtered.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,100).map(t=><tr key={t.id}><td>{new Date(t.date+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</td><td className="desc-cell">{t.description}</td><td><span className="category-pill">{t.category}</span></td><td>{t.payee}</td><td className={'right amount '+(t.type==='income'?'income':'')}>{t.type==='income'?'+':'−'}{money(t.amount)}</td></tr>)}</tbody></table>{!filtered.length&&<div className="empty-table">{loading?'Loading your data…':'No transactions yet. Import a PhonePe CSV or add your first expense.'}</div>}</div>
+        {activeScreen==='dashboard'&&<><div className="transaction-filters">
+          <div className="filter-search search-box"><Search size={16}/><input placeholder="Search description, payee, category..." value={query} onChange={e=>setQuery(e.target.value)}/></div>
+          <select value={month} onChange={e=>setMonth(e.target.value)}><option value="all">All months</option>{months.filter(m=>m!=='all').map(m=><option key={m}>{m}</option>)}</select>
+          <select value={categoryFilter} onChange={e=>setCategoryFilter(e.target.value)}><option value="all">All categories</option>{CATEGORIES.map(c=><option key={c}>{c}</option>)}</select>
+          <select value={typeFilter} onChange={e=>setTypeFilter(e.target.value)}><option value="all">All types</option><option value="expense">Expenses / Debit</option><option value="income">Income / Credit</option></select>
+          <label>Date from<input type="date" value={dateFrom} onChange={e=>setDateFrom(e.target.value)}/></label><label>Date to<input type="date" value={dateTo} onChange={e=>setDateTo(e.target.value)}/></label>
+          <label>Min ₹<input type="number" min="0" placeholder="Any" value={minAmount} onChange={e=>setMinAmount(e.target.value)}/></label><label>Max ₹<input type="number" min="0" placeholder="Any" value={maxAmount} onChange={e=>setMaxAmount(e.target.value)}/></label>
+          <button className="secondary-button clear-filters" onClick={clearTransactionFilters}>Clear filters</button>
+        </div><div className="table-tools"><span>{filtered.length} of {data.transactions.length} transactions</span><span>Sort: {sortBy} ({sortDirection})</span></div>
+        <div className="table-scroll"><table><thead><tr><th>{sortLabel('date','Date')}</th><th>{sortLabel('description','Description')}</th><th>{sortLabel('category','Category')}</th><th>{sortLabel('payee','Payee')}</th><th>{sortLabel('type','Type')}</th><th className="right">{sortLabel('amount','Amount ₹')}</th></tr></thead><tbody>{filtered.slice(0,250).map(t=><tr key={t.id}><td>{new Date(t.date+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</td><td className="desc-cell">{t.description}</td><td><span className="category-pill">{t.category}</span></td><td>{t.payee}</td><td>{t.type==='income'?'Credit':'Debit'}</td><td className={'right amount '+(t.type==='income'?'income':'')}>{t.type==='income'?'+':'−'}{money(t.amount)}</td></tr>)}</tbody></table>{!filtered.length&&<div className="empty-table">{loading?'Loading your data…':'No transactions match these filters.'}</div>}{filtered.length>250&&<div className="empty-table">Showing first 250 matches. Narrow your filters to see fewer records.</div>}</div>
       </>}
       </section>}
       {activeScreen==='mapping'&&<section className="panel mapping-panel review-other-panel"><div className="panel-heading"><div><h2>Uncategorized transactions</h2><p>Review transactions currently assigned to Other. Choose a category to create a date-effective rule and recategorize matching history and future activity.</p></div><span className="chart-label">{data.transactions.filter(t=>t.category==='Other').length} to review</span></div>{data.transactions.filter(t=>t.category==='Other').length?<div className="table-scroll"><table><thead><tr><th>Date</th><th>Description</th><th>Payee extracted</th><th className="right">Amount</th><th>Assign category</th><th></th></tr></thead><tbody>{data.transactions.filter(t=>t.category==='Other').sort((a,b)=>Number(b.amount||0)-Number(a.amount||0)).map(t=><tr key={t.id}><td>{t.date}</td><td className="desc-cell">{t.description}</td><td>{t.payee||'Unspecified payee'}</td><td className="right">{money(t.amount)}</td><td><select value={otherCategoryChoices[t.id]||'Other'} onChange={e=>setOtherCategoryChoices(c=>({...c,[t.id]:e.target.value}))}>{CATEGORIES.filter(c=>c!=='Other').map(c=><option key={c}>{c}</option>)}</select></td><td><button className="primary-button" onClick={()=>createMappingFromOther(t)}>Save rule</button></td></tr>)}</tbody></table></div>:<div className="empty-table">All transactions are categorized. Nothing needs review.</div>}</section>}
