@@ -145,7 +145,8 @@ export default function App() {
       const number=v=>Math.abs(Number(String(v||'').replace(/[^0-9.-]/g,''))||0);
       const amount=number(val('amount'));
       if(!amount)continue;
-      const transactionType=val('type').toLowerCase();\n      const type=/^\\s*debit\\b/.test(transactionType)?'expense':'income';
+      const transactionType=val('type').trim().toLowerCase();
+      const type=transactionType.startsWith('debit')?'expense':'income';
       const dateRaw=val('date'),dm=dateRaw.match(/^(\\d{1,2})[/-](\\d{1,2})[/-](\\d{2,4})/);
       const date=dm?`${dm[3].length===2?'20'+dm[3]:dm[3]}-${dm[2].padStart(2,'0')}-${dm[1].padStart(2,'0')}`:normalizeDate(dateRaw);
       const description=val('description')||val('payee')||'Imported transaction',payee=val('payee')||description;
