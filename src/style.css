@@ -175,3 +175,10 @@
 .transaction-edit-fields input:focus,.transaction-edit-fields select:focus{border-color:#8a7de8;box-shadow:0 0 0 3px #7666e81c}
 .transaction-edit-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:24px;padding-top:16px;border-top:1px solid #f0eff5}
 @media(max-width:560px){.grid-row-actions{gap:4px}.grid-edit-button,.grid-delete-button{padding:6px}.transaction-edit-fields{grid-template-columns:1fr}.transaction-edit-dialog{border-radius:16px}.transaction-edit-actions>*{flex:1}}
+
+/* Keep row actions visible in AG Grid, including narrow viewports */
+.spendwise-grid .ag-pinned-right-cols-container{box-shadow:-5px 0 10px rgba(35,31,70,.045);z-index:2}
+.spendwise-grid .ag-cell[col-id="actions"]{overflow:visible!important;padding-left:8px;padding-right:8px}
+.spendwise-grid .ag-cell[col-id="actions"] .ag-cell-wrapper{width:100%;overflow:visible}
+.grid-row-actions{display:flex!important;align-items:center;justify-content:center;gap:6px;width:100%;height:100%;white-space:nowrap}
+.grid-edit-button,.grid-delete-button{min-height:30px;flex:0 0 auto}
