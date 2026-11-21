@@ -63,7 +63,11 @@ export default function App() {
     try {
       const res = await fetch('/api/data');
       if (res.status===401) { setUser(null); throw new Error('Please sign in with GitHub to access your private expenditure data.'); }
-      if (!res.ok) throw new Error('Could not load your private data.');
+      if (!res.ok) {
+        const problem = await res.json().catch(() => ({}));
+        const detail = problem.details ? (typeof problem.details === 'string' ? problem.details : JSON.stringify(problem.details)) : '';
+        throw new Error([problem.error || 'Could not load your private data.', detail].filter(Boolean).join(' — '));
+      }
       const json = await res.json();
       setData({...initial,...json.data,transactions:Array.isArray(json.data?.transactions)?json.data.transactions:[],rules:json.data?.rules||{}});
       setUser(json.user || user);
