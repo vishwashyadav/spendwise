@@ -203,3 +203,8 @@
 .column-picker-option input:checked:after{content:'';position:absolute;left:4px;top:1px;width:5px;height:9px;border:solid white;border-width:0 2px 2px 0;transform:rotate(45deg)}
 .column-picker-menu>p{margin:10px 2px 0;padding-top:10px;border-top:1px solid #f0eff5;color:#9a98a9;font-size:10px;line-height:1.5}
 @media(max-width:620px){.transaction-grid-tools{align-items:center}.column-picker-menu{right:0;width:min(300px,calc(100vw - 28px))}}
+
+/* Keep long transaction descriptions on one line without overlapping adjacent cells */
+.spendwise-grid .ag-cell.description-grid-cell{overflow:hidden!important;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center}
+.spendwise-grid .ag-cell.description-grid-cell .ag-cell-value{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;min-width:0}
+.spendwise-grid .ag-tooltip{max-width:min(520px,calc(100vw - 32px));white-space:normal;overflow-wrap:anywhere;line-height:1.5}
