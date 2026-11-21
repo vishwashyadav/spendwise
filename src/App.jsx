@@ -9,6 +9,11 @@ const money = n => new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR
 const monthKey = d => { const x = new Date(d); return Number.isNaN(+x) ? 'Unknown' : x.toLocaleString('en-IN',{month:'short',year:'2-digit'}); };
 const localDate = () => { const d = new Date(); return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10); };
 const initial = { transactions: [], rules: {}, schemaVersion: 1 };
+function extractCounterparty(description) {
+  const text=String(description||'').trim();
+  const match=text.match(/^(?:paid\\s+to|received\\s+from)\\s+(.+?)\\s*$/i);
+  return match?match[1].trim():'';
+}
 function categoryForTransaction(transaction, mappings, legacyRules={}) {
   const haystack=`${transaction.payee||''} ${transaction.description||''}`.toLowerCase();
   const date=transaction.date||transaction.transactionDate||'';
@@ -116,8 +121,7 @@ export default function App() {
       const aliases={date:['date','transactiondate','transactiondatetime','createdat','timestamp'],amount:['amount','transactionamount','totalamount'],debit:['debit','withdrawal','debitamount'],credit:['credit','deposit','creditamount'],type:['type','transactiontype','drcr'],description:['description','remark','narration','details','transactiondetails'],payee:['payee','recipient','paidto','merchant','beneficiary','counterparty','name'],reference:['utr','reference','transactionid'],status:['status','transactionstatus']};
       const norm=h=>h.toLowerCase().replace(/[^a-z0-9]/g,'');
       const map={};Object.entries(aliases).forEach(([k,a])=>map[k]=headers.find(h=>a.includes(norm(h)))||'');
-      const payeeField=map.payee||map.description;
-      const payees=[...new Set(rows.map(r=>String(r[payeeField]||r[map.description]||'Unknown payee').trim()).filter(Boolean))];
+      const payees=[...new Set(rows.map(r=>{const explicit=map.payee&&map.payee!==map.description?String(r[map.payee]||'').trim():'';return explicit||extractCounterparty(r[map.description])||'Unspecified payee';}).filter(Boolean))];
       const cats={};payees.forEach(p=>{const k=Object.keys(data.rules||{}).find(x=>p.toLowerCase().includes(x.toLowerCase()));cats[p]=k?data.rules[k]:guessCategory(p,data.rules);});
       setCsvImport({fileName:file.name,headers,rows,mapping:map,payees,payeeCategories:cats});
     },error:()=>setError('Unable to read CSV file.')});
@@ -126,8 +130,7 @@ export default function App() {
     setCsvImport(c=>{
       const mapping={...c.mapping,[field]:value};
       if(field==='payee'||field==='description'){
-        const pf=mapping.payee||mapping.description;
-        const payees=[...new Set(c.rows.map(r=>String(r[pf]||r[mapping.description]||'Unknown payee').trim()).filter(Boolean))];
+        const payees=[...new Set(c.rows.map(r=>{const explicit=mapping.payee&&mapping.payee!==mapping.description?String(r[mapping.payee]||'').trim():'';return explicit||extractCounterparty(r[mapping.description])||'Unspecified payee';}).filter(Boolean))];
         const payeeCategories={};payees.forEach(p=>payeeCategories[p]=c.payeeCategories[p]||guessCategory(p,data.rules));
         return {...c,mapping,payees,payeeCategories};
       }
@@ -149,7 +152,9 @@ export default function App() {
       const type=transactionType.startsWith('debit')?'expense':'income';
       const dateRaw=val('date'),dm=dateRaw.match(/^(\\d{1,2})[/-](\\d{1,2})[/-](\\d{2,4})/);
       const date=dm?`${dm[3].length===2?'20'+dm[3]:dm[3]}-${dm[2].padStart(2,'0')}-${dm[1].padStart(2,'0')}`:normalizeDate(dateRaw);
-      const description=val('description')||val('payee')||'Imported transaction',payee=val('payee')||description;
+      const description=val('description')||val('payee')||'Imported transaction';
+      const explicitPayee=m.payee&&m.payee!==m.description?val('payee'):'';
+      const payee=explicitPayee||extractCounterparty(description)||'Unspecified payee';
       if(/fail|declin|revers|cancel/i.test(val('status')))continue;
       imported.push({id:crypto.randomUUID(),date,transactionDate:date,description,payee,amount,currency:'INR',type,category:payeeCategories[payee]||'Other',reference:val('reference')||undefined,source:fileName});
     }
