@@ -330,7 +330,7 @@ export default function App() {
   function setAllTransactionColumnsVisible(visible){transactionGridApi?.setColumnsVisible(transactionColumnOptions.map(c=>c.key),visible);}
   const transactionColumns=useMemo(()=>[
     {headerName:'Date',field:'date',minWidth:132,filter:'agDateColumnFilter',valueFormatter:p=>p.value?new Date(p.value+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):''},
-    {headerName:'Description',field:'description',flex:2,minWidth:230,filter:'agTextColumnFilter'},
+    {headerName:'Description',field:'description',flex:2,minWidth:230,filter:'agTextColumnFilter',tooltipField:'description',tooltipValueGetter:p=>p.value||'',cellClass:'description-grid-cell'},
     {headerName:'Payee',field:'payee',flex:1.3,minWidth:170,filter:'agTextColumnFilter'},
     {headerName:'Category',field:'category',minWidth:150,filter:'agTextColumnFilter',cellClass:'category-grid-cell'},
     {headerName:'Subcategory',field:'subcategory',minWidth:160,filter:'agSetColumnFilter',valueFormatter:p=>p.value||'—'},
