@@ -68,7 +68,8 @@ export default function App() {
   const [month,setMonth] = useState('all');
   const [showForm,setShowForm] = useState(false);
   const [form,setForm] = useState({date:localDate(),description:'',payee:'',category:'Other',amount:'',type:'expense'});
-  const [mapping,setMapping] = useState({payee:'',category:'Other'});\n  const [csvImport,setCsvImport] = useState(null);
+  const [mapping,setMapping] = useState({payee:'',category:'Other',effectiveFrom:'',effectiveTo:''});
+  const [csvImport,setCsvImport] = useState(null);
 
   async function refresh() {
     setSyncing(true); setError('');
