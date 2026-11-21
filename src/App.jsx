@@ -90,6 +90,7 @@ export default function App() {
   const [editForm,setEditForm] = useState(null);
   const [transactionGridApi,setTransactionGridApi] = useState(null);
   const [showColumnPicker,setShowColumnPicker] = useState(false);
+  const [otherMappingSearch,setOtherMappingSearch] = useState('');
   const [form,setForm] = useState({date:localDate(),description:'',payee:'',category:'Other',subcategory:'',amount:'',type:'expense'});
   const [mapping,setMapping] = useState({payee:'',category:'Other',subcategory:'',effectiveFrom:'',effectiveTo:''});
   const [csvImport,setCsvImport] = useState(null);
