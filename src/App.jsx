@@ -11,7 +11,7 @@ const localDate = () => { const d = new Date(); return new Date(d.getTime()-d.ge
 const initial = { transactions: [], rules: {}, schemaVersion: 1 };
 function extractCounterparty(description) {
   const text=String(description||'').trim();
-  const match=text.match(/^(?:paid\\s+to|received\\s+from)\\s+(.+?)\\s*$/i);
+  const match=text.match(/^(?:paid\s+to|received\s+from)\s+(.+?)\s*$/i);
   return match?match[1].trim():'';
 }
 function categoryForTransaction(transaction, mappings, legacyRules={}) {
