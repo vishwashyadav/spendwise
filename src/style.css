@@ -159,3 +159,19 @@
  .dashboard-transactions-panel .panel-heading{align-items:flex-start;flex-direction:column}
  .dashboard-transactions-panel .panel-heading button{width:100%}
 }
+
+/* Transaction editor modal */
+.grid-row-actions{display:flex;align-items:center;gap:6px}
+.grid-edit-button,.grid-delete-button{display:inline-flex;align-items:center;justify-content:center;gap:5px;border-radius:8px;padding:6px 9px;font:600 11px 'DM Sans',sans-serif;cursor:pointer;white-space:nowrap}
+.grid-edit-button{border:1px solid #e4e0fa;background:#f7f5ff;color:#6658c6}
+.grid-edit-button:hover{background:#eeebff}
+.transaction-edit-dialog{width:min(100%,720px);max-height:min(90vh,850px);overflow:auto;background:#fff;border-radius:20px;padding:clamp(18px,3vw,28px);box-shadow:0 24px 70px rgba(23,20,44,.22)}
+.transaction-edit-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:20px}
+.transaction-edit-heading h3{margin:0 0 5px;font:800 21px Manrope,sans-serif;color:#302e48}
+.transaction-edit-heading p{margin:0;color:#858297;font-size:12px}
+.transaction-edit-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.transaction-edit-fields label{display:flex;flex-direction:column;gap:6px;font-size:11px;font-weight:700;color:#77758a}
+.transaction-edit-fields input,.transaction-edit-fields select{height:42px;width:100%;min-width:0;border:1px solid #e6e4ef;border-radius:10px;padding:0 11px;background:#fff;color:#45435a;font:500 13px 'DM Sans',sans-serif;outline:none}
+.transaction-edit-fields input:focus,.transaction-edit-fields select:focus{border-color:#8a7de8;box-shadow:0 0 0 3px #7666e81c}
+.transaction-edit-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:24px;padding-top:16px;border-top:1px solid #f0eff5}
+@media(max-width:560px){.grid-row-actions{gap:4px}.grid-edit-button,.grid-delete-button{padding:6px}.transaction-edit-fields{grid-template-columns:1fr}.transaction-edit-dialog{border-radius:16px}.transaction-edit-actions>*{flex:1}}
