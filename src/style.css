@@ -73,3 +73,20 @@
 .spendwise-grid .category-grid-cell{font-weight:600}
 .spendwise-grid .ag-paging-panel{color:#77758a;font-size:11px}
 @media(max-width:700px){.ag-filter-toolbar{align-items:stretch;gap:8px;padding:10px}.ag-filter-toolbar .filter-search{flex:1 1 100%;min-width:100%}.ag-filter-toolbar>select,.ag-filter-toolbar>label{flex:1 1 calc(50% - 8px);min-width:0}.ag-filter-toolbar .clear-filters{width:100%}.spendwise-grid{font-size:11px}}
+
+.category-management-panel{max-width:100%;padding:clamp(16px,2.5vw,28px)}
+.category-add-form{display:flex;gap:10px;max-width:620px;margin:18px 0 22px}
+.category-add-form input,.category-delete-card select{height:42px;flex:1;min-width:0;border:1px solid #e5e3ee;border-radius:10px;padding:0 12px;background:#fff;font:500 13px 'DM Sans',sans-serif;color:#45435a}
+.category-admin-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:9px}
+.category-admin-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:12px;padding:12px 14px;border:1px solid #eeedf4;border-radius:11px;background:#fff}
+.category-admin-row>span{font-weight:600;font-size:13px;overflow-wrap:anywhere}
+.category-admin-row small{font-size:10px;color:#89869a;white-space:nowrap}
+.category-admin-row .secondary-button{padding:7px 11px;font-size:11px}
+.category-delete-dialog{position:fixed;inset:0;z-index:1000;background:#19172c88;display:grid;place-items:center;padding:18px}
+.category-delete-card{width:min(100%,480px);background:#fff;border-radius:18px;padding:24px;box-shadow:0 24px 70px #17142c33}
+.category-delete-card h3{margin:0 0 10px;font-size:19px}
+.category-delete-card p{font-size:13px;line-height:1.6;color:#77758a;margin-bottom:18px}
+.category-delete-card label{display:flex;flex-direction:column;gap:7px;font-size:12px;font-weight:600}
+.category-dialog-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:22px;flex-wrap:wrap}
+.danger-button{background:#d94f58!important;border-color:#d94f58!important}
+@media(max-width:560px){.category-add-form{flex-direction:column}.category-add-form button{width:100%;justify-content:center}.category-admin-list{grid-template-columns:1fr}.category-admin-row{grid-template-columns:minmax(0,1fr) auto}.category-admin-row small{grid-column:1}.category-admin-row button{grid-column:2;grid-row:1/3}.category-dialog-actions>*{flex:1}}
