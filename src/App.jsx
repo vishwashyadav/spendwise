@@ -3,7 +3,7 @@ import Papa from 'papaparse';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 import { Wallet, Plus, Upload, Download, LogIn, LogOut, RefreshCw, Search, Trash2, TrendingUp, IndianRupee, CalendarDays, Tags, ShieldCheck } from 'lucide-react';
 
-const CATEGORIES = ['Food & Dining','Groceries','Transport','Shopping','Bills & Utilities','Entertainment','Health','Travel','Education','Home','Other'];
+const CATEGORIES = ['Food & Dining','Groceries','Transport','Shopping','Bills & Utilities','Entertainment','Health','Travel','Education','Rent','Family & Personal','EMI & Loans','Gifts & Donations','Investments','Cash Withdrawal','Home','Other'];
 const COLORS = ['#7666e8','#19a78b','#f59e0b','#e76f51','#4c91d8','#b56bd6','#d65d87','#84934b','#5e718b','#c18a52','#929292'];
 const money = n => new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:0}).format(Number(n)||0);
 const monthKey = d => { const x = new Date(d); return Number.isNaN(+x) ? 'Unknown' : x.toLocaleString('en-IN',{month:'short',year:'2-digit'}); };
@@ -108,7 +108,18 @@ export default function App() {
       setCsvImport({fileName:file.name,headers,rows,mapping:map,payees,payeeCategories:cats});
     },error:()=>setError('Unable to read CSV file.')});
   }
-  function updateCsvMapping(field,value){setCsvImport(c=>({...c,mapping:{...c.mapping,[field]:value}}));}
+  function updateCsvMapping(field,value){
+    setCsvImport(c=>{
+      const mapping={...c.mapping,[field]:value};
+      if(field==='payee'||field==='description'){
+        const pf=mapping.payee||mapping.description;
+        const payees=[...new Set(c.rows.map(r=>String(r[pf]||r[mapping.description]||'Unknown payee').trim()).filter(Boolean))];
+        const payeeCategories={};payees.forEach(p=>payeeCategories[p]=c.payeeCategories[p]||guessCategory(p,data.rules));
+        return {...c,mapping,payees,payeeCategories};
+      }
+      return {...c,mapping};
+    });
+  }
   function updatePayeeCategory(payee,category){setCsvImport(c=>({...c,payeeCategories:{...c.payeeCategories,[payee]:category}}));}
   function confirmCsvImport(){
     if(!csvImport)return;
