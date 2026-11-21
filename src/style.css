@@ -46,3 +46,14 @@
   .review-other-panel td:nth-child(6) .primary-button{width:100%;min-height:40px}
 }
 @media(max-width:420px){.review-other-panel tr{grid-template-columns:1fr}.review-other-panel td:nth-child(4),.review-other-panel td:nth-child(5),.review-other-panel td:nth-child(6){grid-column:1}}
+
+/* Compact unique-description bulk category mapping */
+.description-mapping-list{display:grid;grid-template-columns:1fr;gap:8px;max-height:70vh;overflow:auto;padding:2px}
+.description-mapping-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(190px,260px);align-items:center;gap:18px;padding:14px 16px;border:1px solid #eeedf4;border-radius:12px;background:#fff}
+.description-mapping-text{display:flex;flex-direction:column;gap:5px;min-width:0}
+.description-mapping-text b{font-size:13px;line-height:1.45;overflow-wrap:anywhere;color:#333149}
+.description-mapping-text small{font-size:11px;color:#8a879b}
+.description-mapping-row select{width:100%;min-width:0;padding:10px 12px;border:1px solid #e5e3ee;border-radius:9px;background:#fff;color:#444357;font:500 12px 'DM Sans',sans-serif}
+.review-other-panel .panel-heading{align-items:center}
+.review-other-panel .panel-heading .primary-button{white-space:nowrap;min-height:40px}
+@media(max-width:640px){.description-mapping-row{grid-template-columns:1fr;gap:10px;padding:12px}.review-other-panel .panel-heading{align-items:stretch}.review-other-panel .panel-heading .primary-button{width:100%}.description-mapping-list{max-height:none}}
