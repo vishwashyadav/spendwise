@@ -732,3 +732,25 @@ footer{color:#98a2b3}
  .transactions-page-panel .transaction-page-filters .filter-search{display:flex!important;grid-column:1/-1}
  .transactions-page-panel .transaction-page-filters>.clear-filters{display:block!important;grid-column:1/-1}
 }
+
+
+/* Transactions mobile filters: collapsed by default, expanded inline below toggle */
+@media(max-width:760px){
+ .transaction-filter-toggle{display:flex!important;width:100%;min-height:42px;align-items:center;justify-content:center;gap:8px;margin:0 0 10px}
+ .transaction-page-filters{display:none!important}
+ .transaction-page-filters.mobile-filters-open{
+   display:grid!important;position:static!important;inset:auto!important;z-index:auto!important;
+   width:100%!important;max-height:none!important;overflow:visible!important;overscroll-behavior:auto!important;
+   grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;
+   margin:0 0 14px!important;padding:13px!important;border:1px solid #e7ecf4!important;
+   border-radius:14px!important;background:#fff!important;box-shadow:0 3px 12px rgba(25,39,70,.035)!important;
+   animation:none!important
+ }
+ .transaction-page-filters .filter-search{display:flex!important;grid-column:1/-1}
+ .transaction-page-filters>select,.transaction-page-filters>label{min-width:0}
+ .transaction-page-filters>label{display:flex;flex-direction:column;gap:5px}
+ .transaction-page-filters>label>input,.transaction-page-filters>select{width:100%;min-width:0}
+ .transaction-page-filters .clear-filters{display:block!important;grid-column:1/-1}
+ .transactions-page-panel .transaction-page-filters .mobile-sheet-heading,
+ .transactions-page-panel .transaction-page-filters .mobile-sheet-footer{display:none!important}
+}
