@@ -84,10 +84,6 @@ export default function App() {
   const [maxAmount,setMaxAmount] = useState('');
   const [sortBy,setSortBy] = useState('date');
   const [sortDirection,setSortDirection] = useState('desc');
-  const [transactionPage,setTransactionPage] = useState(1);
-  const transactionPageSize=20;
-  const transactionPageCount=Math.max(1,Math.ceil(filtered.length/transactionPageSize));
-  const transactionPageRows=filtered.slice((transactionPage-1)*transactionPageSize,transactionPage*transactionPageSize);
   const [showForm,setShowForm] = useState(false);
   const [deleteTarget,setDeleteTarget] = useState(null);
   const [editTarget,setEditTarget] = useState(null);
@@ -341,6 +337,9 @@ export default function App() {
     });
   },[data.transactions,month,categoryFilter,typeFilter,dateFrom,dateTo,minAmount,maxAmount,query,sortBy,sortDirection]);
   useEffect(()=>{setTransactionPage(1);},[query,month,categoryFilter,typeFilter,dateFrom,dateTo,minAmount,maxAmount,sortBy,sortDirection]);
+  const transactionPageSize=20;
+  const transactionPageCount=Math.max(1,Math.ceil(filtered.length/transactionPageSize));
+  const transactionPageRows=filtered.slice((transactionPage-1)*transactionPageSize,transactionPage*transactionPageSize);
   const transactionColumnOptions=[{key:'date',label:'Date'},{key:'description',label:'Description'},{key:'payee',label:'Payee'},{key:'category',label:'Category'},{key:'subcategory',label:'Subcategory'},{key:'type',label:'Transaction type'},{key:'amount',label:'Amount'},{key:'actions',label:'Actions'}];
   function setTransactionColumnVisible(key,visible){transactionGridApi?.setColumnsVisible([key],visible);}
   function setAllTransactionColumnsVisible(visible){transactionGridApi?.setColumnsVisible(transactionColumnOptions.map(c=>c.key),visible);}
