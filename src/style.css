@@ -390,3 +390,31 @@ body{overflow-x:hidden}
  .transactions-page-panel .action-row .upload-button{grid-column:1}
  .legend{grid-template-columns:minmax(0,1fr)}
 }
+
+
+/* Header hierarchy: primary navigation left, authentication isolated right */
+.topbar{display:flex;align-items:center;justify-content:flex-start;gap:clamp(14px,2vw,28px)}
+.top-actions{display:flex;align-items:center;justify-content:flex-start;gap:7px;flex:1;min-width:0}
+.auth-actions{display:flex;align-items:center;justify-content:flex-end;gap:9px;flex:0 0 auto;margin-left:auto}
+.auth-actions .primary-button{min-height:40px;padding:10px 15px}
+.auth-actions .user-label{max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(min-width:761px) and (max-width:1100px){
+ .topbar{gap:12px}
+ .top-actions{gap:5px}
+ .top-actions .import-nav{padding:8px 9px;font-size:10px}
+ .auth-actions .primary-button{padding:9px 10px;font-size:10px}
+}
+@media(max-width:760px){
+ .topbar{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"brand auth" "nav nav";align-items:center;gap:10px 8px}
+ .topbar>.brand{grid-area:brand;min-width:0}
+ .topbar>.auth-actions{grid-area:auth;margin-left:0;justify-self:end;max-width:100%}
+ .auth-actions .primary-button{min-height:38px;padding:8px 10px;font-size:11px}
+ .auth-actions .user-label,.auth-actions .sync-state{display:none}
+ .topbar>.top-actions{grid-area:nav;width:100%;flex:initial;display:flex;align-items:center;justify-content:flex-start;gap:7px;overflow-x:auto;overflow-y:hidden;padding:1px 0 5px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+ .topbar>.top-actions::-webkit-scrollbar{display:none}
+ .topbar .top-actions .import-nav{flex:0 0 auto;min-height:36px;padding:8px 11px;font-size:11px}
+}
+@media(max-width:360px){
+ .auth-actions .primary-button{padding:7px 8px;font-size:10px}
+ .brand small{font-size:10px}
+}
