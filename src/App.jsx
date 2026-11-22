@@ -96,6 +96,8 @@ export default function App() {
   const [mapping,setMapping] = useState({payee:'',category:'Other',subcategory:'',effectiveFrom:'',effectiveTo:''});
   const [csvImport,setCsvImport] = useState(null);
   const [activeScreen,setActiveScreen] = useState('dashboard');
+  const [navOpen,setNavOpen] = useState(false);
+  const [showMobileFilters,setShowMobileFilters] = useState(false);
   const [otherCategoryChoices,setOtherCategoryChoices] = useState({});
   const [newCategory,setNewCategory] = useState('');
   const [categoryToDelete,setCategoryToDelete] = useState('');
@@ -359,15 +361,17 @@ export default function App() {
   function exportCsv(){const csv=Papa.unparse(data.transactions);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='spendwise-transactions.csv';a.click();URL.revokeObjectURL(a.href);}
   async function logout(){await fetch('/api/auth/logout',{method:'POST'});setUser(null);setData(initial);}
   return <div className="app-shell">
-    <header className="topbar"><div className="brand"><div className="brand-icon"><Wallet size={21}/></div><div><b>Spendwise</b><small>Personal finance, made clear</small></div></div>
-      <nav className="top-actions" aria-label="Main navigation"><button className="secondary-button import-nav" onClick={()=>setActiveScreen('dashboard')}>Dashboard</button><button className="secondary-button import-nav" onClick={()=>setActiveScreen('transactions')}>Transactions</button><button className="secondary-button import-nav" onClick={()=>{setCsvImport(null);setActiveScreen('import')}}>Import CSV</button><button className="secondary-button import-nav" onClick={()=>setActiveScreen('mapping')}>Categorize Other ({data.transactions.filter(t=>t.category==='Other').length})</button><button className="secondary-button import-nav" onClick={()=>setActiveScreen('categories')}>Manage Categories</button></nav>
+    <header className="topbar"><button type="button" className="brand brand-menu-trigger" aria-label="Open navigation menu" aria-expanded={navOpen} onClick={()=>setNavOpen(v=>!v)}><div className="brand-icon"><Wallet size={21}/></div><div><b>Spendwise</b><small>Personal finance, made clear</small></div></button>
       <div className="auth-actions">{user?<><span className="sync-state">{syncing?<RefreshCw size={14} className="spin"/>:<ShieldCheck size={14}/>} {syncing?'Syncing':'Private sync'}</span><span className="user-label">{user.login}</span><button className="icon-button" title="Sign out" onClick={logout}><LogOut size={17}/></button></>:<a className="primary-button" href="/api/auth/login"><LogIn size={16}/> Sign in with GitHub</a>}</div>
     </header>
+    {navOpen&&<><button className="nav-drawer-backdrop" aria-label="Close navigation" onClick={()=>setNavOpen(false)}></button><nav className="nav-drawer" aria-label="Main navigation"><div className="nav-drawer-heading"><b>Menu</b><button type="button" className="icon-button" onClick={()=>setNavOpen(false)} aria-label="Close menu">×</button></div><button className={activeScreen==='dashboard'?'active':''} onClick={()=>{setActiveScreen('dashboard');setNavOpen(false)}}>Dashboard</button><button className={activeScreen==='transactions'?'active':''} onClick={()=>{setActiveScreen('transactions');setNavOpen(false)}}>Transactions</button><button className={activeScreen==='import'?'active':''} onClick={()=>{setCsvImport(null);setActiveScreen('import');setNavOpen(false)}}>Import CSV</button><button className={activeScreen==='mapping'?'active':''} onClick={()=>{setActiveScreen('mapping');setNavOpen(false)}}>Categorize Other ({data.transactions.filter(t=>t.category==='Other').length})</button><button className={activeScreen==='categories'?'active':''} onClick={()=>{setActiveScreen('categories');setNavOpen(false)}}>Manage Categories</button></nav></>}
     <main className={`main ${activeScreen==='import'?'import-mode':activeScreen==='mapping'?'mapping-mode':activeScreen==='transactions'?'transactions-mode':'dashboard-mode'}`}>
       {activeScreen==='dashboard'&&<><div className="welcome"><div><p className="eyebrow">YOUR MONEY OVERVIEW</p><h1>Spending at a glance</h1><p className="muted">Charts and transactions update together using the filters below.</p></div><button className="secondary-button" onClick={refresh}><RefreshCw size={15}/> Refresh</button></div>
       {error&&<div className="notice">{error}</div>}
       {!user&&<div className="login-banner"><ShieldCheck size={20}/><div><b>Your data stays private</b><p>Sign in with the authorized GitHub account to load and sync your private data repository.</p></div><a href="/api/auth/login">Continue with GitHub →</a></div>}
-      <div className="transaction-filters ag-filter-toolbar dashboard-global-filters">
+      <button type="button" className="mobile-filter-toggle secondary-button" aria-expanded={showMobileFilters} onClick={()=>setShowMobileFilters(v=>!v)}><SlidersHorizontal size={16}/>{showMobileFilters?'Hide filters':'Show filters'}<ChevronDown size={15} className={showMobileFilters?'chevron-open':''}/></button>
+      <div className={`transaction-filters ag-filter-toolbar dashboard-global-filters ${showMobileFilters?'mobile-filters-open':''}`}>
+
         <div className="filter-search search-box"><Search size={16}/><input placeholder="Search description, payee, category..." value={query} onChange={e=>setQuery(e.target.value)}/></div>
         <select value={month} onChange={e=>setMonth(e.target.value)}><option value="all">All months</option>{months.filter(m=>m!=='all').map(m=><option key={m}>{m}</option>)}</select>
         <select value={categoryFilter} onChange={e=>setCategoryFilter(e.target.value)}><option value="all">All categories</option>{categoryOptions.map(c=><option key={c}>{c}</option>)}</select>
