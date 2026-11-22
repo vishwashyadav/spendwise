@@ -84,6 +84,7 @@ export default function App() {
   const [maxAmount,setMaxAmount] = useState('');
   const [sortBy,setSortBy] = useState('date');
   const [sortDirection,setSortDirection] = useState('desc');
+  const [transactionPage,setTransactionPage] = useState(1);
   const [showForm,setShowForm] = useState(false);
   const [deleteTarget,setDeleteTarget] = useState(null);
   const [editTarget,setEditTarget] = useState(null);
