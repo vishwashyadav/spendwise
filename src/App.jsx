@@ -6,7 +6,7 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 ModuleRegistry.registerModules([AllCommunityModule]);
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
-import { Wallet, Plus, Upload, Download, LogIn, LogOut, RefreshCw, Search, Trash2, TrendingUp, IndianRupee, CalendarDays, Tags, ShieldCheck, SlidersHorizontal, ChevronDown } from 'lucide-react';
+import { Wallet, Plus, Upload, Download, LogIn, LogOut, RefreshCw, Search, Trash2, TrendingUp, IndianRupee, CalendarDays, Tags, ShieldCheck, SlidersHorizontal, ChevronDown, ArrowDownRight, ArrowUpRight, Activity, ReceiptText, WalletCards } from 'lucide-react';
 
 const CATEGORIES = ['Food & Dining','Groceries','Transport','Shopping','Bills & Utilities','Entertainment','Health','Travel','Education','Rent','Family & Personal','EMI & Loans','Gifts & Donations','Investments','Cash Withdrawal','Home','Other'];
 const COLORS = ['#7666e8','#19a78b','#f59e0b','#e76f51','#4c91d8','#b56bd6','#d65d87','#84934b','#5e718b','#c18a52','#929292'];
@@ -380,6 +380,12 @@ export default function App() {
         <label>Min ₹<input type="number" min="0" placeholder="Any" value={minAmount} onChange={e=>setMinAmount(e.target.value)}/></label><label>Max ₹<input type="number" min="0" placeholder="Any" value={maxAmount} onChange={e=>setMaxAmount(e.target.value)}/></label>
         <button className="secondary-button clear-filters" onClick={clearTransactionFilters}>Clear filters</button>
       </div>
+      <section className="financial-kpis" aria-label="Financial summary">
+        <article className="kpi-card kpi-expense"><div className="kpi-top"><span>Total expenses</span><span className="kpi-icon"><ArrowDownRight size={18}/></span></div><strong>{money(total)}</strong><small><span className="kpi-dot expense-dot"></span>{expenses.length} debit transactions</small></article>
+        <article className="kpi-card kpi-income"><div className="kpi-top"><span>Total income</span><span className="kpi-icon"><ArrowUpRight size={18}/></span></div><strong>{money(income)}</strong><small><span className="kpi-dot income-dot"></span>{filtered.filter(t=>t.type==='income').length} credit transactions</small></article>
+        <article className={`kpi-card ${income-total>=0?'kpi-positive':'kpi-negative'}`}><div className="kpi-top"><span>Net cash flow</span><span className="kpi-icon"><Activity size={18}/></span></div><strong>{money(income-total)}</strong><small>{income-total>=0?'Income exceeds expenses':'Expenses exceed income'}</small></article>
+        <article className="kpi-card kpi-volume"><div className="kpi-top"><span>Transactions</span><span className="kpi-icon"><ReceiptText size={18}/></span></div><strong>{filtered.length.toLocaleString('en-IN')}</strong><small>Across selected filters</small></article>
+      </section>
       <section className="charts-grid">
         <article className="panel"><div className="panel-heading"><div><h2>Expense trend</h2><p>Monthly spending over time</p></div><span className="chart-label">Last 8 months</span></div>
           {trend.length?<ResponsiveContainer width="100%" height={245}><AreaChart data={trend} margin={{top:10,right:8,left:0,bottom:0}}><defs><linearGradient id="fillSpend" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#7666e8" stopOpacity={.25}/><stop offset="100%" stopColor="#7666e8" stopOpacity={0}/></linearGradient></defs><CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ececf2"/><XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill:'#9292a1',fontSize:12}}/><YAxis axisLine={false} tickLine={false} tick={{fill:'#9292a1',fontSize:11}} tickFormatter={v=>v>=1000?(v/1000)+'k':v}/><Tooltip formatter={v=>money(v)}/><Area type="monotone" dataKey="amount" stroke="#7666e8" strokeWidth={2.5} fill="url(#fillSpend)"/></AreaChart></ResponsiveContainer>:<div className="empty-chart">Add transactions to see your spending trend.</div>}
