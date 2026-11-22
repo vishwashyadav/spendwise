@@ -6,7 +6,7 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 ModuleRegistry.registerModules([AllCommunityModule]);
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
-import { Wallet, Plus, Upload, Download, LogIn, LogOut, RefreshCw, Search, Trash2, TrendingUp, IndianRupee, CalendarDays, Tags, ShieldCheck, SlidersHorizontal, ChevronDown, ArrowDownRight, ArrowUpRight, Activity, ReceiptText, WalletCards } from 'lucide-react';
+import { Wallet, Plus, Upload, Download, LogIn, LogOut, RefreshCw, Search, Trash2, TrendingUp, IndianRupee, CalendarDays, Tags, ShieldCheck, SlidersHorizontal, ChevronDown, ArrowDownRight, ArrowUpRight, Activity, ReceiptText, WalletCards, Sparkles } from 'lucide-react';
 
 const CATEGORIES = ['Food & Dining','Groceries','Transport','Shopping','Bills & Utilities','Entertainment','Health','Travel','Education','Rent','Family & Personal','EMI & Loans','Gifts & Donations','Investments','Cash Withdrawal','Home','Other'];
 const COLORS = ['#7666e8','#19a78b','#f59e0b','#e76f51','#4c91d8','#b56bd6','#d65d87','#84934b','#5e718b','#c18a52','#929292'];
@@ -98,6 +98,10 @@ export default function App() {
   const [activeScreen,setActiveScreen] = useState('dashboard');
   const [navOpen,setNavOpen] = useState(false);
   const [showMobileFilters,setShowMobileFilters] = useState(false);
+  const [insightQuestion,setInsightQuestion] = useState('');
+  const [insightResult,setInsightResult] = useState('');
+  const [insightLoading,setInsightLoading] = useState(false);
+  const [insightError,setInsightError] = useState('');
   const [otherCategoryChoices,setOtherCategoryChoices] = useState({});
   const [newCategory,setNewCategory] = useState('');
   const [categoryToDelete,setCategoryToDelete] = useState('');
@@ -358,6 +362,24 @@ export default function App() {
   const categoryData=useMemo(()=>{const map={};expenses.forEach(t=>map[t.category]=(map[t.category]||0)+Number(t.amount));return Object.entries(map).map(([name,value])=>({name,value})).sort((a,b)=>b.value-a.value);},[expenses]);
   const avg=trend.length?trend.reduce((s,x)=>s+x.amount,0)/trend.length:0;
   const dashboardRows=filtered.slice(0,10);
+  async function generateInsights(question=insightQuestion){
+    if(insightLoading)return;
+    setInsightLoading(true);setInsightError('');setInsightResult('');
+    const expenseRows=filtered.filter(t=>t.type!=='income');
+    const incomeRows=filtered.filter(t=>t.type==='income');
+    const byMonth={};const byCategory={};
+    for(const t of filtered){
+      const period=monthKey(t.date);
+      const bucket=byMonth[period]||(byMonth[period]={income:0,expenses:0,transactions:0});
+      bucket.transactions++;
+      if(t.type==='income')bucket.income+=Number(t.amount)||0;else bucket.expenses+=Number(t.amount)||0;
+      if(t.type!=='income'){const category=t.category||'Other';const group=byCategory[category]||(byCategory[category]={amount:0,count:0});group.amount+=Number(t.amount)||0;group.count++;}
+    }
+    const report={currency:'INR',period:{from:dateFrom||null,to:dateTo||null,month:month==='all'?'All selected months':month},totals:{expenses:expenseRows.reduce((sum,t)=>sum+(Number(t.amount)||0),0),income:incomeRows.reduce((sum,t)=>sum+(Number(t.amount)||0),0),expenseCount:expenseRows.length,incomeCount:incomeRows.length,transactionCount:filtered.length},monthly:Object.entries(byMonth).map(([period,v])=>({period,...Object.fromEntries(Object.entries(v).map(([k,n])=>[k,Math.round(n)]))})).slice(-18),categories:Object.entries(byCategory).map(([category,v])=>({category,amount:Math.round(v.amount),count:v.count})).sort((x,y)=>y.amount-x.amount).slice(0,15)};
+    try{const response=await fetch('/api/insights',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({report,question:question.trim()})});const result=await response.json().catch(()=>({}));if(!response.ok)throw new Error(result.error||'Could not generate insights. Please try again.');setInsightResult(result.insight||'No insight was returned.');}
+    catch(error){setInsightError(error.message||'Something went wrong while generating insights.');}
+    finally{setInsightLoading(false);}
+  }
   function exportCsv(){const csv=Papa.unparse(data.transactions);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='spendwise-transactions.csv';a.click();URL.revokeObjectURL(a.href);}
   async function logout(){await fetch('/api/auth/logout',{method:'POST'});setUser(null);setData(initial);}
   return <div className="app-shell">
@@ -385,6 +407,15 @@ export default function App() {
         <article className="kpi-card kpi-income"><div className="kpi-top"><span>Total income</span><span className="kpi-icon"><ArrowUpRight size={18}/></span></div><strong>{money(income)}</strong><small><span className="kpi-dot income-dot"></span>{filtered.filter(t=>t.type==='income').length} credit transactions</small></article>
         <article className={`kpi-card ${income-total>=0?'kpi-positive':'kpi-negative'}`}><div className="kpi-top"><span>Net cash flow</span><span className="kpi-icon"><Activity size={18}/></span></div><strong>{money(income-total)}</strong><small>{income-total>=0?'Income exceeds expenses':'Expenses exceed income'}</small></article>
         <article className="kpi-card kpi-volume"><div className="kpi-top"><span>Transactions</span><span className="kpi-icon"><ReceiptText size={18}/></span></div><strong>{filtered.length.toLocaleString('en-IN')}</strong><small>Across selected filters</small></article>
+      </section>
+      <section className="ai-insights-panel panel">
+        <div className="ai-insights-heading"><div className="ai-sparkle-icon"><Sparkles size={19}/></div><div><span className="ai-kicker">SPENDWISE INTELLIGENCE</span><h2>Ask your money a question</h2><p>Get practical insights from your spending patterns.</p></div></div>
+        <div className="ai-insights-input"><textarea value={insightQuestion} onChange={e=>setInsightQuestion(e.target.value)} placeholder="e.g. Where am I spending more than usual? How can I save ₹5,000 next month?" rows={2} maxLength={500}/><button className="primary-button" onClick={()=>generateInsights()} disabled={insightLoading||!filtered.length}><Sparkles size={16}/>{insightLoading?'Analysing…':'Generate insights'}</button></div>
+        <div className="ai-suggested-questions"><button type="button" onClick={()=>{setInsightQuestion('Which categories should I focus on to reduce my expenses?');setInsightResult('');}}>Where can I save?</button><button type="button" onClick={()=>{setInsightQuestion('What changed in my spending month over month?');setInsightResult('');}}>Spending trends</button><button type="button" onClick={()=>{setInsightQuestion('What unusual patterns or potential overspending do you see?');setInsightResult('');}}>Spot unusual spending</button></div>
+        {insightLoading&&<div className="ai-loading"><span className="ai-spinner"></span>Reviewing your spending summary…</div>}
+        {insightError&&<div className="ai-error" role="alert">{insightError}</div>}
+        {insightResult&&<div className="ai-result"><div className="ai-result-title"><Sparkles size={15}/> Your spending insights</div><div className="ai-result-content">{insightResult}</div><small>AI-generated observations based on the selected report. Verify figures before making financial decisions.</small></div>}
+        <div className="ai-privacy-note"><ShieldCheck size={14}/> Only totals, monthly aggregates and category summaries are sent for analysis. Transaction descriptions and payee names are not shared.</div>
       </section>
       <section className="charts-grid">
         <article className="panel"><div className="panel-heading"><div><h2>Expense trend</h2><p>Monthly spending over time</p></div><span className="chart-label">Last 8 months</span></div>
