@@ -612,3 +612,33 @@ footer{color:#98a2b3}
  .ai-result{padding:13px}
  .ai-result-content{font-size:11px}
 }
+
+/* Dedicated AI insights page */
+.insights-mode{max-width:1040px}
+.insights-mode .ai-insights-panel{margin-top:4px;padding:clamp(18px,3vw,30px);border-radius:20px;box-shadow:0 10px 34px rgba(28,42,75,.055)}
+.insights-mode .ai-insights-heading{gap:16px;margin-bottom:22px}
+.insights-mode .ai-sparkle-icon{width:50px;height:50px;flex-basis:50px;border-radius:16px}
+.insights-mode .ai-insights-heading h2{font-size:21px}
+.insights-mode .ai-insights-heading p{font-size:13px}
+.insights-mode .ai-insights-input textarea{min-height:94px;font-size:14px;padding:15px}
+.insights-mode .ai-insights-input .primary-button{min-width:190px}
+.insights-mode .ai-suggested-questions{gap:9px;margin-top:13px}
+.insights-mode .ai-suggested-questions button{padding:9px 13px;font-size:11px}
+.insights-mode .ai-result{padding:22px;margin-top:22px}
+.insights-mode .ai-result-content{font-size:14px;line-height:1.8}
+.insights-mode .ai-result-title{font-size:15px;margin-bottom:14px}
+.insights-mode .ai-privacy-note{font-size:10px;margin-top:18px}
+@media(max-width:760px){
+ .insights-mode{padding-top:18px}
+ .insights-mode .welcome{align-items:flex-start}
+ .insights-mode .welcome h1{font-size:25px}
+ .insights-mode .ai-insights-panel{padding:17px 14px;border-radius:16px}
+ .insights-mode .ai-insights-heading{gap:11px;margin-bottom:16px}
+ .insights-mode .ai-sparkle-icon{width:40px;height:40px;flex-basis:40px}
+ .insights-mode .ai-insights-heading h2{font-size:17px}
+ .insights-mode .ai-insights-heading p{font-size:11px}
+ .insights-mode .ai-insights-input textarea{min-height:100px;font-size:13px}
+ .insights-mode .ai-insights-input .primary-button{min-height:48px}
+ .insights-mode .ai-result{padding:15px;margin-top:17px}
+ .insights-mode .ai-result-content{font-size:12px;line-height:1.75}
+}
