@@ -526,3 +526,45 @@ footer{color:#98a2b3}
  .kpi-top{font-size:10px}
  .kpi-icon{width:26px;height:26px}
 }
+
+
+/* Premium mobile finance experience */
+.dashboard-mobile-transactions{display:none}
+.category-share-list{display:grid;gap:13px;margin-top:10px;padding-top:15px;border-top:1px solid #edf0f5}
+.category-share-row{min-width:0}
+.category-share-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px;color:#344054;font-size:11px}
+.category-share-meta>span{display:flex;align-items:center;gap:8px;font-weight:650;min-width:0}
+.category-share-meta i{display:inline-block;width:9px;height:9px;border-radius:3px;flex:0 0 9px}
+.category-share-meta b{font-size:11px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.category-share-track{height:7px;border-radius:20px;background:#f0f2f7;overflow:hidden}
+.category-share-track>span{display:block;height:100%;border-radius:20px;min-width:3px}
+.category-share-row>small{display:block;margin-top:5px;color:#98a2b3;font-size:9px}
+.mobile-transaction-card{display:flex;align-items:center;gap:11px;min-width:0;padding:13px 0;border-bottom:1px solid #eff2f6}
+.mobile-transaction-card:last-child{border-bottom:0}
+.mobile-transaction-icon{display:grid;place-items:center;flex:0 0 39px;width:39px;height:39px;border-radius:13px;background:color-mix(in srgb,var(--transaction-accent) 12%,white);color:var(--transaction-accent);font:800 14px Manrope,sans-serif}
+.mobile-transaction-info{display:flex;flex:1;flex-direction:column;gap:3px;min-width:0}
+.mobile-transaction-info>b{color:#273449;font-size:12px;font-weight:700;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mobile-transaction-info>span{color:#5e6b80;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mobile-transaction-info>small{color:#98a2b3;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mobile-transaction-card>strong{flex:0 0 auto;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.mobile-amount-expense{color:#d64e58}
+.mobile-amount-income{color:#07845f}
+.mobile-transactions-empty{padding:25px 10px;text-align:center;color:#98a2b3;font-size:12px}
+@media(max-width:760px){
+ .dashboard-transactions-panel .spendwise-grid{display:none}
+ .dashboard-mobile-transactions{display:block}
+ .dashboard-transactions-panel .panel-heading{margin-bottom:7px}
+ .dashboard-transactions-panel .panel-heading h2{font-size:16px}
+ .dashboard-transactions-panel .panel-heading p{font-size:10px}
+ .category-share-list{gap:11px;margin-top:8px}
+ .category-share-meta{font-size:10px}
+ .category-share-meta b{font-size:10px}
+ .mobile-transaction-card{gap:10px;padding:12px 0}
+ .mobile-transaction-icon{width:36px;height:36px;flex-basis:36px;border-radius:12px}
+ .mobile-transaction-info>b{font-size:11px}
+ .mobile-transaction-card>strong{font-size:11px}
+}
+@media(prefers-reduced-motion:no-preference){
+ .kpi-card,.panel,.primary-button,.secondary-button,.mobile-transaction-card{transition:box-shadow .18s ease,border-color .18s ease,transform .18s ease}
+ .kpi-card:hover{transform:translateY(-2px);box-shadow:0 9px 24px rgba(28,42,75,.08)}
+}
