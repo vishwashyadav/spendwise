@@ -710,3 +710,25 @@ footer{color:#98a2b3}
 }
 @keyframes filter-sheet-in{from{transform:translateY(24px);opacity:.75}to{transform:translateY(0);opacity:1}}
 @media(prefers-reduced-motion:reduce){.transaction-filters.ag-filter-toolbar.mobile-filters-open{animation:none}}
+
+
+/* Revert Transactions filters to the original inline mobile layout.
+   Keep dashboard filter experiment separate; do not change transaction cards. */
+@media(max-width:760px){
+ .transactions-page-panel .transaction-page-filters.ag-filter-toolbar{
+   display:grid!important;
+   position:static!important;
+   width:auto!important;
+   max-height:none!important;
+   overflow:visible!important;
+   grid-template-columns:repeat(2,minmax(0,1fr))!important;
+   gap:10px!important;
+   margin:0 0 14px!important;
+   padding:13px!important;
+   border-radius:14px!important;
+   box-shadow:0 3px 12px rgba(25,39,70,.035)!important;
+   animation:none!important;
+ }
+ .transactions-page-panel .transaction-page-filters .filter-search{display:flex!important;grid-column:1/-1}
+ .transactions-page-panel .transaction-page-filters>.clear-filters{display:block!important;grid-column:1/-1}
+}
