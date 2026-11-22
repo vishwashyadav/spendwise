@@ -446,3 +446,83 @@ body{overflow-x:hidden}
  .dashboard-global-filters.mobile-filters-open{display:grid!important}
 }
 @media(min-width:761px){.mobile-filter-toggle{display:none!important}}
+
+
+/* Spendwise enterprise visual system */
+:root{
+ --sw-ink:#172033;--sw-muted:#68758b;--sw-border:#e5eaf2;--sw-canvas:#f4f7fb;
+ --sw-primary:#4f46e5;--sw-primary-hover:#4338ca;--sw-radius:14px;
+ --sw-green:#059669;--sw-red:#dc5454;--sw-blue:#2563eb;--sw-amber:#d97706;
+}
+body{background:var(--sw-canvas);color:var(--sw-ink);font-feature-settings:"ss01" on}
+.app-shell{background:linear-gradient(180deg,#f8faff 0,#f4f7fb 280px);min-height:100vh}
+.topbar{background:rgba(255,255,255,.94);border-bottom:1px solid #e8edf5;box-shadow:0 2px 12px rgba(24,39,75,.035);backdrop-filter:blur(14px)}
+.brand-icon{background:linear-gradient(145deg,#625cf2,#4338ca);box-shadow:0 5px 14px rgba(79,70,229,.2)}
+.brand b{color:#172033;letter-spacing:-.45px}
+.brand small{color:#8490a4}
+.main{max-width:1320px;padding-top:34px}
+.eyebrow{color:#625cf2;font-size:10px;letter-spacing:2px}
+.welcome{align-items:center;margin-bottom:24px}
+.welcome h1{color:#172033;font-size:clamp(26px,3vw,34px);letter-spacing:-1.1px}
+.welcome .muted{color:#758197;line-height:1.55}
+.panel,.stat-card{border:1px solid #e7ecf4;border-radius:16px;box-shadow:0 5px 20px rgba(28,42,75,.045)}
+.panel{padding:22px 23px}
+.panel-heading h2{color:#202b40;font-size:15px;letter-spacing:-.2px}
+.panel-heading p{color:#8490a4;line-height:1.5}
+.dashboard-global-filters{background:#fff;border-color:#e7ecf4;box-shadow:0 4px 16px rgba(28,42,75,.035)}
+.charts-grid{gap:18px}
+.charts-grid>.panel{min-width:0}
+.chart-label{background:#f0f2ff;color:#5b55d6;font-weight:700}
+.empty-chart{color:#9aa5b5}
+.login-banner{background:linear-gradient(110deg,#f1f4ff,#f8f7ff);border:1px solid #dfe5ff;color:#5148c9;border-radius:14px}
+.notice{border-radius:12px}
+.financial-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:0 0 18px}
+.kpi-card{position:relative;min-width:0;overflow:hidden;padding:17px 18px 15px;background:#fff;border:1px solid #e6ebf3;border-radius:15px;box-shadow:0 4px 15px rgba(28,42,75,.035)}
+.kpi-card:after{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--kpi-color,#64748b)}
+.kpi-expense{--kpi-color:#e05a5a}.kpi-income{--kpi-color:#0b9b72}.kpi-positive{--kpi-color:#0b9b72}.kpi-negative{--kpi-color:#e05a5a}.kpi-volume{--kpi-color:#5476d9}
+.kpi-top{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#718096;font-size:12px;font-weight:600}
+.kpi-icon{display:grid;place-items:center;width:33px;height:33px;border-radius:10px;background:#f1f4fa;color:var(--kpi-color)}
+.kpi-expense .kpi-icon{background:#fff0f0}.kpi-income .kpi-icon,.kpi-positive .kpi-icon{background:#e9f8f2}.kpi-negative .kpi-icon{background:#fff0f0}.kpi-volume .kpi-icon{background:#eef3ff}
+.kpi-card>strong{display:block;margin:12px 0 7px;color:#172033;font:800 clamp(19px,2vw,25px) Manrope,sans-serif;letter-spacing:-.7px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.kpi-card>small{display:flex;align-items:center;gap:7px;color:#8792a5;font-size:10px}
+.kpi-dot{width:7px;height:7px;border-radius:50%}.expense-dot{background:#e05a5a}.income-dot{background:#0b9b72}
+.dashboard-transactions-panel{border-radius:16px}
+.spendwise-grid{--ag-font-family:'DM Sans',sans-serif;--ag-font-size:12px;--ag-foreground-color:#344054;--ag-background-color:#fff;--ag-header-background-color:#f7f9fc;--ag-header-foreground-color:#667085;--ag-border-color:#e8edf4;--ag-row-border-color:#eef1f6;--ag-row-hover-color:#f6f8ff;--ag-selected-row-background-color:#eef2ff;--ag-checkbox-checked-color:#4f46e5}
+.spendwise-grid .ag-header-cell-text{font-size:11px;letter-spacing:.2px;text-transform:uppercase}
+.spendwise-grid .ag-cell{color:#344054}
+.spendwise-grid .grid-expense{color:#d64e58;font-weight:700}.spendwise-grid .grid-income{color:#07845f;font-weight:700}
+.category-pill{background:#eef2ff;color:#4f46e5;border-radius:20px;font-weight:700}
+.primary-button{background:linear-gradient(135deg,#625cf2,#4f46e5);border-color:#4f46e5;box-shadow:0 3px 8px rgba(79,70,229,.14)}
+.primary-button:hover:not(:disabled){background:#4338ca}
+.secondary-button{border-color:#e1e7f0;color:#475467;background:#fff}
+.secondary-button:hover:not(:disabled){background:#f7f8ff;border-color:#cbd2ff;color:#4f46e5}
+.search-box{border-color:#e5eaf2;background:#fbfcff}
+.nav-drawer{border-right:1px solid #e5eaf2}
+.nav-drawer>button.active{background:#eef2ff;color:#4f46e5}
+.transaction-edit-dialog,.transaction-delete-dialog,.category-delete-card{border:1px solid #e7ecf4;box-shadow:0 24px 80px rgba(20,32,56,.22)}
+footer{color:#98a2b3}
+@media(max-width:900px){
+ .financial-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ .main{padding-top:24px}
+}
+@media(max-width:760px){
+ .app-shell{background:var(--sw-canvas)}
+ .main{padding:19px 13px 28px}
+ .welcome{gap:12px;margin-bottom:16px}
+ .welcome h1{font-size:26px}
+ .financial-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-bottom:13px}
+ .kpi-card{padding:13px 13px 12px;border-radius:13px}
+ .kpi-top{font-size:11px}
+ .kpi-icon{width:29px;height:29px}
+ .kpi-card>strong{font-size:clamp(17px,5vw,22px);margin:9px 0 6px}
+ .kpi-card>small{font-size:9px;line-height:1.35}
+ .charts-grid{gap:12px}
+ .charts-grid>.panel{padding:15px 12px}
+ .dashboard-transactions-panel{padding:14px 10px}
+ .panel{box-shadow:0 3px 13px rgba(28,42,75,.035)}
+}
+@media(max-width:360px){
+ .kpi-card{padding:11px 10px}
+ .kpi-top{font-size:10px}
+ .kpi-icon{width:26px;height:26px}
+}
