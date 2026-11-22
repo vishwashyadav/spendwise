@@ -60,7 +60,7 @@ export async function onRequestPost({ request, env }) {
     'Prioritise 3 to 5 useful, specific insights: largest spending drivers, meaningful month-to-month changes when comparable months exist, savings opportunities, cash-flow observations, and anomalies that can genuinely be inferred from aggregates.',
     'Use exact amounts and percentages only when they can be calculated from the supplied numbers. Do not assume recurring expenses or income stability.',
     'Give practical, achievable actions. Do not recommend investments, loans, tax positions or other regulated financial products. Do not shame the user.',
-    'Use concise Markdown with headings: Key takeaways, What stands out, Actions to consider. Address the user’s question if provided. If the report is empty or very small, explain the limitation and suggest what data would make the analysis more useful.'
+    'Use plain text only, not Markdown syntax. Use short headings exactly: KEY TAKEAWAYS, WHAT STANDS OUT, ACTIONS TO CONSIDER. Use a bullet character for each point and blank lines between sections. Address the user’s question if provided. If the report is empty or very small, explain the limitation and suggest what data would make the analysis more useful.'
   ].join(' ');
 
   const prompt = 'User question: ' + (question || 'Please analyse this report and surface the most important insights.') +
