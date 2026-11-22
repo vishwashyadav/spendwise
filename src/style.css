@@ -673,3 +673,13 @@ footer{color:#98a2b3}
 @media(min-width:761px){
  .transactions-page-panel .transaction-mobile-list,.transactions-page-panel .transaction-mobile-pagination{display:none!important}
 }
+
+
+/* Mobile transaction cards do not need desktop grid column controls */
+@media(max-width:760px){
+ .transactions-page-panel .transaction-grid-tools,
+ .transactions-page-panel .spendwise-grid,
+ .transactions-page-panel .ag-floating-filter,
+ .transactions-page-panel .ag-header-row-column-filter,
+ .transactions-page-panel .ag-header-cell-menu-button{display:none!important}
+}
