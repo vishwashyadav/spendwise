@@ -642,3 +642,34 @@ footer{color:#98a2b3}
  .insights-mode .ai-result{padding:15px;margin-top:17px}
  .insights-mode .ai-result-content{font-size:12px;line-height:1.75}
 }
+
+
+/* Transactions: mobile-first cards with 20-item paging */
+.transaction-mobile-list,.transaction-mobile-pagination{display:none}
+.transaction-mobile-card{padding:13px 14px;border:1px solid #e8edf4;border-radius:14px;background:#fff;box-shadow:0 3px 12px rgba(25,39,70,.035);margin:0 0 9px}
+.transaction-mobile-main{display:flex;align-items:center;gap:10px;min-width:0}
+.transaction-mobile-icon{display:grid;place-items:center;flex:0 0 39px;width:39px;height:39px;border-radius:12px;background:color-mix(in srgb,var(--transaction-accent) 12%,white);color:var(--transaction-accent);font:800 14px Manrope,sans-serif}
+.transaction-mobile-copy{display:flex;flex:1;flex-direction:column;gap:3px;min-width:0}
+.transaction-mobile-copy>b{color:#273449;font-size:12px;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.transaction-mobile-copy>span{color:#667085;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.transaction-mobile-copy>small{color:#98a2b3;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.transaction-mobile-main>strong{flex:0 0 auto;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.transaction-mobile-actions{display:flex;justify-content:flex-end;gap:7px;margin-top:11px;padding-top:9px;border-top:1px solid #f0f2f6}
+.transaction-mobile-actions button{min-height:32px;padding:6px 12px;font-size:10px}
+.transaction-mobile-actions .danger-text{color:#d64e58;border-color:#f1d9dc}
+.transaction-mobile-pagination{align-items:center;justify-content:space-between;gap:10px;padding:12px 2px 3px;color:#7b8798;font-size:10px}
+.transaction-mobile-pagination>div{display:flex;align-items:center;gap:8px}
+.transaction-mobile-pagination>div>b{white-space:nowrap;color:#4b5565;font-size:10px}
+.transaction-mobile-pagination button{min-height:34px;padding:6px 10px;font-size:10px}
+.transaction-mobile-pagination button:disabled{opacity:.4;cursor:not-allowed}
+@media(max-width:760px){
+ .transactions-page-panel .spendwise-grid{display:none!important}
+ .transactions-page-panel .transaction-mobile-list{display:block}
+ .transactions-page-panel .transaction-mobile-pagination{display:flex}
+ .transactions-page-panel .transaction-grid-tools{margin-bottom:12px}
+ .transactions-page-panel .transaction-mobile-card{margin-bottom:9px}
+ .transactions-page-panel .panel-heading{margin-bottom:14px}
+}
+@media(min-width:761px){
+ .transactions-page-panel .transaction-mobile-list,.transactions-page-panel .transaction-mobile-pagination{display:none!important}
+}
