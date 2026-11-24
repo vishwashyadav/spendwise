@@ -754,3 +754,65 @@ footer{color:#98a2b3}
  .transactions-page-panel .transaction-page-filters .mobile-sheet-heading,
  .transactions-page-panel .transaction-page-filters .mobile-sheet-footer{display:none!important}
 }
+
+
+/* Expense Groups */
+.transaction-group-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:13px 0;padding:12px 14px;border:1px solid #e7e8f4;border-radius:12px;background:#fafaff}
+.transaction-group-toolbar>div{display:flex;flex-direction:column;gap:3px}
+.transaction-group-toolbar b{font:800 12px Manrope,sans-serif;color:#30334a}
+.transaction-group-toolbar small{font-size:10px;color:#8b91a1}
+.transaction-group-toolbar button:disabled{opacity:.45;cursor:not-allowed}
+.transaction-select-checkbox{width:18px;height:18px;accent-color:#7164df;cursor:pointer;flex:0 0 auto}
+.transaction-mobile-main>.transaction-select-checkbox{margin-right:1px}
+.groups-page{width:100%}
+.groups-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.expense-group-card{display:block;width:100%;padding:18px;text-align:left;border:1px solid #e9eaf2;border-radius:16px;background:#fff;box-shadow:0 4px 18px rgba(32,39,68,.035);cursor:pointer;color:inherit}
+.expense-group-card:hover{border-color:#c9c4fa;box-shadow:0 8px 24px rgba(45,43,95,.08);transform:translateY(-1px)}
+.expense-group-card-top{display:flex;align-items:center;justify-content:space-between;color:#7566e8;font-size:10px;font-weight:700}
+.expense-group-card h2{margin:12px 0 5px;color:#292c42;font:800 17px Manrope,sans-serif}
+.expense-group-card p{min-height:32px;margin:0;color:#8b91a1;font-size:11px;line-height:1.5}
+.expense-group-card-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:17px 0 14px;padding:12px 0;border-top:1px solid #f0f1f5;border-bottom:1px solid #f0f1f5}
+.expense-group-card-stats>div{display:flex;flex-direction:column;gap:5px;min-width:0}
+.expense-group-card-stats small,.group-total-grid small{color:#9298a7;font-size:9px}
+.expense-group-card-stats b{color:#34374c;font-size:12px;white-space:nowrap}
+.group-positive{color:#0b9870!important}.group-negative{color:#cf565b!important}
+.expense-group-card>footer{display:flex;justify-content:space-between;gap:8px;color:#8b91a1;font-size:10px}
+.expense-group-card>footer span{color:#655bd4;font-weight:700}
+.groups-empty{grid-column:1/-1;display:flex;align-items:center;flex-direction:column;text-align:center;padding:45px 20px;color:#7566e8}
+.groups-empty h2{margin:12px 0 5px;color:#30334a;font:800 18px Manrope}
+.groups-empty p{max-width:380px;color:#8b91a1;font-size:12px;line-height:1.6}
+.group-detail-panel{padding:22px}
+.group-back-button{border:0;background:transparent;color:#655bd4;font:700 11px 'DM Sans',sans-serif;padding:4px 0 14px;cursor:pointer}
+.group-detail-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.group-category-label{display:inline-flex;padding:5px 9px;border-radius:20px;background:#f0edff;color:#655bd4;font-size:10px;font-weight:700}
+.group-detail-heading h2{margin:9px 0 4px;color:#292c42;font:800 23px Manrope}
+.group-detail-heading p{margin:0;color:#8b91a1;font-size:11px}
+.group-total-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0;padding:17px;border-radius:13px;background:#f8f8fc}
+.group-total-grid>div{display:flex;flex-direction:column;gap:7px}
+.group-total-grid b{font:800 17px Manrope;color:#30334a}
+.group-detail-panel>h3{margin:18px 0 6px;font:800 14px Manrope;color:#30334a}
+.group-member-row{display:flex;align-items:center;gap:12px;padding:13px 2px;border-bottom:1px solid #f0f1f5}
+.group-member-row>div{display:flex;flex:1;flex-direction:column;gap:4px;min-width:0}
+.group-member-row>div b{font-size:12px;color:#30334a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.group-member-row>div small{font-size:10px;color:#9298a7}
+.group-member-row>strong{font-size:12px;white-space:nowrap}
+.group-remove-button{width:29px;height:29px;border:0;border-radius:8px;background:#fff1f1;color:#c9575b;font-size:18px;cursor:pointer}
+.group-create-dialog form{display:grid;gap:13px}
+.group-create-dialog form>label{display:flex;flex-direction:column;gap:6px;color:#666b7b;font-size:11px;font-weight:700}
+.group-create-dialog form input,.group-create-dialog form select{width:100%;min-height:42px;padding:10px 12px;border:1px solid #e4e7ef;border-radius:10px;background:#fff;color:#34374c;font:500 13px 'DM Sans',sans-serif}
+@media(max-width:760px){
+ .transaction-group-toolbar{align-items:center;padding:10px;margin:10px 0}
+ .transaction-group-toolbar small{max-width:205px;line-height:1.4}
+ .transaction-group-toolbar button{min-height:39px;padding:8px 10px;font-size:10px}
+ .groups-grid{grid-template-columns:1fr;gap:10px}
+ .expense-group-card{padding:15px;border-radius:14px}
+ .group-detail-panel{padding:15px}
+ .group-detail-heading{flex-direction:column}
+ .group-detail-heading h2{font-size:20px}
+ .group-total-grid{gap:8px;padding:13px 10px}
+ .group-total-grid b{font-size:13px}
+ .group-total-grid small{font-size:8px}
+ .group-member-row{gap:8px}
+ .group-member-row>div small{font-size:9px}
+ .group-create-dialog{max-height:88dvh;overflow:auto}
+}
