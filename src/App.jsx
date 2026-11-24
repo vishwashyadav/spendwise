@@ -349,7 +349,7 @@ export default function App() {
   const transactionPageSize=20;
   const transactionPageCount=Math.max(1,Math.ceil(filtered.length/transactionPageSize));
   const transactionPageRows=filtered.slice((transactionPage-1)*transactionPageSize,transactionPage*transactionPageSize);
-  const transactionColumnOptions=[{key:'date',label:'Date'},{key:'description',label:'Description'},{key:'payee',label:'Payee'},{key:'category',label:'Category'},{key:'subcategory',label:'Subcategory'},{key:'type',label:'Transaction type'},{key:'amount',label:'Amount'},{key:'actions',label:'Actions'}];
+  const transactionColumnOptions=[{key:'select',label:'Select'},{key:'date',label:'Date'},{key:'description',label:'Description'},{key:'payee',label:'Payee'},{key:'category',label:'Category'},{key:'subcategory',label:'Subcategory'},{key:'type',label:'Transaction type'},{key:'amount',label:'Amount'},{key:'actions',label:'Actions'}];
   function setTransactionColumnVisible(key,visible){transactionGridApi?.setColumnsVisible([key],visible);}
   function setAllTransactionColumnsVisible(visible){transactionGridApi?.setColumnsVisible(transactionColumnOptions.map(c=>c.key),visible);}
   const transactionColumns=useMemo(()=>[
@@ -362,7 +362,7 @@ export default function App() {
     {headerName:'Type',field:'type',minWidth:120,filter:'agSetColumnFilter',valueFormatter:p=>p.value==='income'?'Credit':'Debit'},
     {headerName:'Amount',field:'amount',minWidth:150,filter:'agNumberColumnFilter',type:'numericColumn',valueFormatter:p=>money(p.value),cellClass:p=>p.data?.type==='income'?'grid-income':'grid-expense'},
     {headerName:'Actions',colId:'actions',pinned:'right',lockPinned:true,width:176,minWidth:176,maxWidth:176,sortable:false,filter:false,resizable:false,suppressHeaderMenuButton:true,cellStyle:{overflow:'visible',display:'flex',alignItems:'center'},cellRenderer:p=><div className="grid-row-actions"><button type="button" className="grid-edit-button" title="Edit transaction" aria-label="Edit transaction" onClick={e=>{e.stopPropagation();openEditTransaction(p.data);}}><Tags size={14}/> Edit</button><button type="button" className="grid-delete-button" title="Delete transaction" aria-label="Delete transaction" onClick={e=>{e.stopPropagation();setDeleteTarget(p.data);}}><Trash2 size={14}/> Delete</button></div>},
-  ],[]);
+  ],[selectedTransactionIds]);
   const expenseGroups=Array.isArray(data.expenseGroups)?data.expenseGroups:[];
   const selectedTransactions=data.transactions.filter(t=>selectedTransactionIds.includes(t.id));
   function toggleTransactionSelection(id){setSelectedTransactionIds(ids=>ids.includes(id)?ids.filter(x=>x!==id):[...ids,id]);}
