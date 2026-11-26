@@ -816,3 +816,28 @@ footer{color:#98a2b3}
  .group-member-row>div small{font-size:9px}
  .group-create-dialog{max-height:88dvh;overflow:auto}
 }
+
+
+/* Spendwise AI Agent — Milestone 1 */
+.agent-page{display:grid;gap:20px}
+.agent-chat-panel{padding:24px;max-width:920px;margin:0 auto;width:100%}
+.agent-chat-heading{display:flex;align-items:flex-start;gap:14px;margin-bottom:22px}
+.agent-chat-heading h2{margin:3px 0 6px;font-size:22px}
+.agent-chat-heading p{margin:0;color:var(--muted,#777)}
+.agent-starters{display:flex;flex-wrap:wrap;gap:9px;margin:14px 0 20px}
+.agent-starters button{border:1px solid var(--border,#e6e6ed);background:var(--surface,#fff);color:inherit;border-radius:999px;padding:9px 13px;cursor:pointer;font:inherit;font-size:13px}
+.agent-starters button:hover{border-color:#7666e8;color:#6655d9}
+.agent-conversation{display:grid;gap:14px;max-height:52vh;overflow:auto;padding:4px 0 12px}
+.agent-message{max-width:88%;border-radius:16px;padding:13px 16px;white-space:pre-wrap;overflow-wrap:anywhere}
+.agent-message>span{display:block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;opacity:.7;margin-bottom:7px}
+.agent-message p{margin:0;line-height:1.6}
+.agent-message-user{justify-self:end;background:#7666e8;color:white;border-bottom-right-radius:5px}
+.agent-message-assistant{justify-self:start;background:var(--surface-soft,#f5f5f8);border:1px solid var(--border,#e7e7ed);border-bottom-left-radius:5px}
+.agent-thinking{display:flex;align-items:center;gap:9px}
+.agent-composer{display:flex;align-items:flex-end;gap:10px;border:1px solid var(--border,#e4e4eb);border-radius:14px;padding:10px;margin-top:10px}
+.agent-composer textarea{flex:1;min-width:0;resize:vertical;border:0;outline:0;background:transparent;color:inherit;font:inherit;padding:8px;max-height:180px}
+.agent-composer .primary-button{white-space:nowrap}
+.agent-tool-trace{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin:8px 0 12px;font-size:12px;color:var(--muted,#777)}
+.agent-tool-trace b{display:inline-flex;align-items:center;gap:5px;color:var(--text,#333)}
+.agent-tool-trace span{border:1px solid var(--border,#e4e4eb);border-radius:999px;padding:4px 8px;text-transform:capitalize}
+@media(max-width:600px){.agent-chat-panel{padding:16px}.agent-message{max-width:96%}.agent-composer{flex-direction:column;align-items:stretch}.agent-composer .primary-button{align-self:stretch;justify-content:center}.agent-chat-heading h2{font-size:19px}}

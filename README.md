@@ -47,3 +47,20 @@ Create a GitHub OAuth App with:
 For the fine-grained PAT, select only the `spendwise-data` repository and grant Contents read/write. Store it only as the Cloudflare Pages secret `GITHUB_DATA_TOKEN`.
 
 Never put OAuth secrets, the data token, or session secret in Vite variables or frontend code.
+
+
+## Spendwise AI Agent (Milestone 1)
+
+The AI Agent is available from the **AI Agent** navigation item. It uses the server-side Cloudflare Pages Function at `/api/agent`, the existing authenticated Spendwise session, and the existing private GitHub data repository. It requires the same `OPENAI_API_KEY`, `GITHUB_DATA_REPO`, and `GITHUB_DATA_TOKEN` secrets already used by Spendwise.
+
+The first milestone is intentionally read-only. The agent uses OpenAI Responses API tool calling with five deterministic server-side tools:
+
+- `get_spending_summary`: personal expenses, personal income and net cash flow, with reimbursements excluded from earned income.
+- `search_transactions`: search transactions by text, month and type.
+- `get_category_breakdown`: category totals using net expense-group costs.
+- `get_monthly_trend`: month-by-month personal spending and income.
+- `list_expense_groups`: group payment, reimbursement and net-cost totals.
+
+The browser sends the user's question and a short conversation history. The server authenticates the session, loads private data directly from GitHub, executes only the tools selected by the model, and returns the answer plus the names of tools used. The private data token and OpenAI key never reach the browser. Transaction-level results needed to answer a question are sent to OpenAI; avoid asking questions that expose information you do not want processed by the AI provider.
+
+No transaction, category, group, budget or other financial record can be changed by this first version. Mutating tools and approval workflows are planned for a later milestone.

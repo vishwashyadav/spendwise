@@ -111,6 +111,11 @@ export default function App() {
   const [insightResult,setInsightResult] = useState('');
   const [insightLoading,setInsightLoading] = useState(false);
   const [insightError,setInsightError] = useState('');
+  const [agentMessages,setAgentMessages] = useState([]);
+  const [agentInput,setAgentInput] = useState('');
+  const [agentLoading,setAgentLoading] = useState(false);
+  const [agentError,setAgentError] = useState('');
+  const [agentTools,setAgentTools] = useState([]);
   const [otherCategoryChoices,setOtherCategoryChoices] = useState({});
   const [newCategory,setNewCategory] = useState('');
   const [categoryToDelete,setCategoryToDelete] = useState('');
@@ -420,14 +425,29 @@ export default function App() {
     catch(error){setInsightError(error.message||'Something went wrong while generating insights.');}
     finally{setInsightLoading(false);}
   }
+  async function sendAgentMessage(text=agentInput){
+    const question=String(text||'').trim();
+    if(!question||agentLoading)return;
+    const history=agentMessages.slice(-8).map(m=>({role:m.role,content:m.content}));
+    setAgentMessages(messages=>[...messages,{role:'user',content:question}]);
+    setAgentInput('');setAgentLoading(true);setAgentError('');setAgentTools([]);
+    try{
+      const response=await fetch('/api/agent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question,history})});
+      const result=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(result.error||'The Spendwise agent could not answer. Please try again.');
+      setAgentMessages(messages=>[...messages,{role:'assistant',content:result.reply||'I could not generate a response.'}]);
+      setAgentTools(result.toolsUsed||[]);
+    }catch(error){setAgentError(error.message||'Something went wrong. Please try again.');}
+    finally{setAgentLoading(false);}
+  }
   function exportCsv(){const csv=Papa.unparse(data.transactions);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='spendwise-transactions.csv';a.click();URL.revokeObjectURL(a.href);}
   async function logout(){await fetch('/api/auth/logout',{method:'POST'});setUser(null);setData(initial);}
   return <div className="app-shell">
     <header className="topbar"><button type="button" className="brand brand-menu-trigger" aria-label="Open navigation menu" aria-expanded={navOpen} onClick={()=>setNavOpen(v=>!v)}><div className="brand-icon"><Wallet size={21}/></div><div><b>Spendwise</b><small>Personal finance, made clear</small></div></button>
       <div className="auth-actions">{user?<><span className="sync-state">{syncing?<RefreshCw size={14} className="spin"/>:<ShieldCheck size={14}/>} {syncing?'Syncing':'Private sync'}</span><span className="user-label">{user.login}</span><button className="icon-button" title="Sign out" onClick={logout}><LogOut size={17}/></button></>:<a className="primary-button" href="/api/auth/login"><LogIn size={16}/> Sign in with GitHub</a>}</div>
     </header>
-    {navOpen&&<><button className="nav-drawer-backdrop" aria-label="Close navigation" onClick={()=>setNavOpen(false)}></button><nav className="nav-drawer" aria-label="Main navigation"><div className="nav-drawer-heading"><b>Menu</b><button type="button" className="icon-button" onClick={()=>setNavOpen(false)} aria-label="Close menu">×</button></div><button className={activeScreen==='dashboard'?'active':''} onClick={()=>{setActiveScreen('dashboard');setNavOpen(false)}}>Dashboard</button><button className={activeScreen==='insights'?'active':''} onClick={()=>{setActiveScreen('insights');setNavOpen(false)}}><Sparkles size={15}/> AI Insights</button><button className={activeScreen==='transactions'?'active':''} onClick={()=>{setActiveScreen('transactions');setNavOpen(false)}}>Transactions</button><button className={activeScreen==='groups'?'active':''} onClick={()=>{setActiveScreen('groups');setNavOpen(false)}}><Tags size={15}/> Expense Groups ({expenseGroups.length})</button><button className={activeScreen==='import'?'active':''} onClick={()=>{setCsvImport(null);setActiveScreen('import');setNavOpen(false)}}>Import CSV</button><button className={activeScreen==='mapping'?'active':''} onClick={()=>{setActiveScreen('mapping');setNavOpen(false)}}>Categorize Other ({data.transactions.filter(t=>t.category==='Other').length})</button><button className={activeScreen==='categories'?'active':''} onClick={()=>{setActiveScreen('categories');setNavOpen(false)}}>Manage Categories</button></nav></>}
-    <main className={`main ${activeScreen==='import'?'import-mode':activeScreen==='mapping'?'mapping-mode':activeScreen==='transactions'?'transactions-mode':activeScreen==='insights'?'insights-mode':activeScreen==='groups'?'groups-mode':'dashboard-mode'}`}>
+    {navOpen&&<><button className="nav-drawer-backdrop" aria-label="Close navigation" onClick={()=>setNavOpen(false)}></button><nav className="nav-drawer" aria-label="Main navigation"><div className="nav-drawer-heading"><b>Menu</b><button type="button" className="icon-button" onClick={()=>setNavOpen(false)} aria-label="Close menu">×</button></div><button className={activeScreen==='dashboard'?'active':''} onClick={()=>{setActiveScreen('dashboard');setNavOpen(false)}}>Dashboard</button><button className={activeScreen==='insights'?'active':''} onClick={()=>{setActiveScreen('insights');setNavOpen(false)}}><Sparkles size={15}/> AI Insights</button><button className={activeScreen==='agent'?'active':''} onClick={()=>{setActiveScreen('agent');setNavOpen(false)}}><Sparkles size={15}/> AI Agent</button><button className={activeScreen==='transactions'?'active':''} onClick={()=>{setActiveScreen('transactions');setNavOpen(false)}}>Transactions</button><button className={activeScreen==='groups'?'active':''} onClick={()=>{setActiveScreen('groups');setNavOpen(false)}}><Tags size={15}/> Expense Groups ({expenseGroups.length})</button><button className={activeScreen==='import'?'active':''} onClick={()=>{setCsvImport(null);setActiveScreen('import');setNavOpen(false)}}>Import CSV</button><button className={activeScreen==='mapping'?'active':''} onClick={()=>{setActiveScreen('mapping');setNavOpen(false)}}>Categorize Other ({data.transactions.filter(t=>t.category==='Other').length})</button><button className={activeScreen==='categories'?'active':''} onClick={()=>{setActiveScreen('categories');setNavOpen(false)}}>Manage Categories</button></nav></>}
+    <main className={`main ${activeScreen==='import'?'import-mode':activeScreen==='mapping'?'mapping-mode':activeScreen==='transactions'?'transactions-mode':activeScreen==='insights'?'insights-mode':activeScreen==='agent'?'agent-mode':activeScreen==='groups'?'groups-mode':'dashboard-mode'}`}>
       {activeScreen==='dashboard'&&<><div className="welcome"><div><p className="eyebrow">YOUR MONEY OVERVIEW</p><h1>Spending at a glance</h1><p className="muted">Charts and transactions update together using the filters below.</p></div><button className="secondary-button" onClick={refresh}><RefreshCw size={15}/> Refresh</button></div>
       {error&&<div className="notice">{error}</div>}
       {!user&&<div className="login-banner"><ShieldCheck size={20}/><div><b>Your data stays private</b><p>Sign in with the authorized GitHub account to load and sync your private data repository.</p></div><a href="/api/auth/login">Continue with GitHub →</a></div>}
@@ -506,6 +526,30 @@ export default function App() {
         <div className="transaction-mobile-pagination"><span>Showing {filtered.length?((transactionPage-1)*transactionPageSize+1):0}–{Math.min(transactionPage*transactionPageSize,filtered.length)} of {filtered.length}</span><div><button type="button" className="secondary-button" disabled={transactionPage<=1} onClick={()=>setTransactionPage(p=>Math.max(1,p-1))}>Previous</button><b>Page {transactionPage} of {transactionPageCount}</b><button type="button" className="secondary-button" disabled={transactionPage>=transactionPageCount} onClick={()=>setTransactionPage(p=>Math.min(transactionPageCount,p+1))}>Next</button></div></div>
 
       </>}
+      </section>}
+      {activeScreen==='agent'&&<section className="agent-page">
+        <div className="welcome"><div><p className="eyebrow">SPENDWISE INTELLIGENCE</p><h1>Your AI finance assistant</h1><p className="muted">Ask questions about your actual transactions, spending patterns and expense groups.</p></div><button className="secondary-button" onClick={()=>{setAgentMessages([]);setAgentError('');setAgentTools([]);}}>New conversation</button></div>
+        {!user&&<div className="login-banner"><ShieldCheck size={20}/><div><b>Sign in to use your finance agent</b><p>Your agent reads your private Spendwise data only after you authenticate.</p></div><a href="/api/auth/login">Continue with GitHub →</a></div>}
+        <section className="panel agent-chat-panel">
+          <div className="agent-chat-heading"><div className="ai-sparkle-icon"><Sparkles size={19}/></div><div><span className="ai-kicker">READ-ONLY AGENT · MILESTONE 1</span><h2>How can I help with your money?</h2><p>I can search transactions, calculate spending, compare months and inspect expense groups.</p></div></div>
+          {!agentMessages.length&&<div className="agent-starters">
+            <button type="button" onClick={()=>sendAgentMessage('Summarise my spending and cash flow.')}>Summarise my spending</button>
+            <button type="button" onClick={()=>sendAgentMessage('Which categories cost me the most?')}>Where does my money go?</button>
+            <button type="button" onClick={()=>sendAgentMessage('Show my latest monthly spending trend.')}>Show monthly trends</button>
+            <button type="button" onClick={()=>sendAgentMessage('List my expense groups and explain reimbursements.')}>Review expense groups</button>
+          </div>}
+          <div className="agent-conversation" aria-live="polite">
+            {agentMessages.map((message,index)=><article className={message.role==='user'?'agent-message agent-message-user':'agent-message agent-message-assistant'} key={index}><span>{message.role==='user'?'You':'Spendwise Agent'}</span><p>{message.content}</p></article>)}
+            {agentLoading&&<article className="agent-message agent-message-assistant"><span>Spendwise Agent</span><p className="agent-thinking"><span className="ai-spinner"></span> Thinking, checking your data and using tools…</p></article>}
+          </div>
+          {agentError&&<div className="ai-error" role="alert">{agentError}</div>}
+          {!!agentTools.length&&<div className="agent-tool-trace"><b><ShieldCheck size={14}/> Tools used</b>{agentTools.map(tool=><span key={tool}>{tool.replaceAll('_',' ')}</span>)}</div>}
+          <form className="agent-composer" onSubmit={e=>{e.preventDefault();sendAgentMessage();}}>
+            <textarea value={agentInput} onChange={e=>setAgentInput(e.target.value)} placeholder="Ask Spendwise about your transactions…" rows={2} maxLength={1500} disabled={!user||agentLoading}/>
+            <button className="primary-button" type="submit" disabled={!user||agentLoading||!agentInput.trim()}><Sparkles size={16}/>{agentLoading?'Working…':'Ask agent'}</button>
+          </form>
+          <div className="ai-privacy-note"><ShieldCheck size={14}/> Your data is loaded server-side from your private repository. Only the tool results needed to answer your question are sent to OpenAI. This first milestone is read-only; the agent cannot change transactions or budgets.</div>
+        </section>
       </section>}
       {activeScreen==='groups'&&<section className="groups-page"><div className="welcome"><div><p className="eyebrow">CONNECTED TRANSACTIONS</p><h1>Expense Groups</h1><p className="muted">Bring related payments and reimbursements together without merging original records.</p></div><button className="secondary-button" onClick={()=>setActiveScreen('transactions')}>Select transactions</button></div>
       {selectedGroupId&&expenseGroups.some(g=>g.id===selectedGroupId)?(()=>{const group=expenseGroups.find(g=>g.id===selectedGroupId);const totals=groupTotals(group);return <section className="panel group-detail-panel"><button className="group-back-button" onClick={()=>setSelectedGroupId(null)}>← All groups</button><div className="group-detail-heading"><div><span className="group-category-label">{group.category||'Other'}</span><h2>{group.name}</h2><p>{group.description||'Grouped transactions'} · {totals.members.length} records</p></div></div><div className="group-total-grid"><div><small>Total paid</small><b>{money(totals.paid)}</b></div><div><small>Money received</small><b className="group-positive">{money(totals.received)}</b></div><div><small>Net personal expense</small><b>{money(totals.net)}</b></div></div><h3>Transactions in this group</h3>{totals.members.map(t=><div className="group-member-row" key={t.id}><div><b>{t.description||t.payee}</b><small>{t.date} · {t.category||'Other'} · {t.type==='income'?'Money received':'Payment'}</small></div><strong className={t.type==='income'?'group-positive':'group-negative'}>{t.type==='income'?'+':'−'}{money(t.amount)}</strong><button className="group-remove-button" title="Remove from group" onClick={()=>removeFromGroup(group.id,t.id)}>×</button></div>)}</section>})():<div className="groups-grid">{expenseGroups.map(group=>{const totals=groupTotals(group);return <button type="button" className="expense-group-card" key={group.id} onClick={()=>setSelectedGroupId(group.id)}><div className="expense-group-card-top"><span>{group.category||'Other'}</span><Tags size={18}/></div><h2>{group.name}</h2><p>{group.description||'Related transactions grouped together'}</p><div className="expense-group-card-stats"><div><small>Paid</small><b>{money(totals.paid)}</b></div><div><small>Received</small><b className="group-positive">{money(totals.received)}</b></div><div><small>Net</small><b>{money(totals.net)}</b></div></div><footer>{totals.members.length} transactions <span>View group →</span></footer></button>})}{!expenseGroups.length&&<div className="panel groups-empty"><Tags size={30}/><h2>No expense groups yet</h2><p>Select related transactions in Transactions and choose “Group selected”. You can include both payments and reimbursements.</p><button className="primary-button" onClick={()=>setActiveScreen('transactions')}>Go to Transactions</button></div>}</div>}</section>}
