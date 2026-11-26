@@ -54,7 +54,9 @@ function runTool(name, args, data) {
       relevantGroups.reduce((s, g) => s + g.members.filter(t => dateInMonth(t, month) && !isIncome(t)).reduce((n, t) => n + amount(t.amount), 0) -
         g.members.filter(t => dateInMonth(t, month) && isIncome(t)).reduce((n, t) => n + amount(t.amount), 0), 0);
     const personalIncome = ungrouped.filter(isIncome).reduce((s, t) => s + amount(t.amount), 0);
-    return { period: month || 'all available dates', transactionCount: rows.length, personalExpenses, personalIncome, netCashFlow: personalIncome - personalExpenses, groupedPayments: relevantGroups.reduce((s, g) => s + g.paid, 0), groupedReimbursements: relevantGroups.reduce((s, g) => s + g.received, 0), groupCount: relevantGroups.length, note: 'Expense-group reimbursements reduce personal expense; they are not treated as earned income. Gross group payments and reimbursements are shown separately.' };
+    const scopedGroupPayments = relevantGroups.reduce((s, g) => s + g.members.filter(t => dateInMonth(t, month) && !isIncome(t)).reduce((n, t) => n + amount(t.amount), 0), 0);
+    const scopedGroupReimbursements = relevantGroups.reduce((s, g) => s + g.members.filter(t => dateInMonth(t, month) && isIncome(t)).reduce((n, t) => n + amount(t.amount), 0), 0);
+    return { period: month || 'all available dates', transactionCount: rows.length, personalExpenses, personalIncome, netCashFlow: personalIncome - personalExpenses, groupedPayments: scopedGroupPayments, groupedReimbursements: scopedGroupReimbursements, groupCount: relevantGroups.length, note: 'Expense-group reimbursements reduce personal expense; they are not treated as earned income. Gross group payments and reimbursements are shown separately.' };
   }
 
   if (name === 'search_transactions') {
